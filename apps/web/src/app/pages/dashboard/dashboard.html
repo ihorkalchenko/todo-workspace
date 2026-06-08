@@ -1,0 +1,55 @@
+<div class="min-h-full">
+  <nav class="bg-indigo-950">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex item-center">
+          <div class="shrink-0 inline-flex items-center">
+            <div class="text-gray-50 font-semibold">Task Manager</div>
+          </div>
+          <div class="hidden md:block">
+            <div class="ms-10 flex items-baseline space-x-4">
+              <a
+                routerLink="/tasks"
+                routerLinkActive="text-white bg-white/10"
+                class="rounded-md px-3 py-2 text-sm font-medium text-gray-200 hover:text-white hover:bg-white/15"
+              >
+                Tasks
+              </a>
+              <a
+                routerLink="/settings"
+                routerLinkActive="text-white bg-white/10"
+                class="rounded-md px-3 py-2 text-sm font-medium text-gray-200 hover:text-white hover:bg-white/15"
+              >
+                Settings
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="hidden md:block">
+          <div class="flex item-center ms-6">
+            <button
+              (click)="logout()"
+              class="flex items-center justify-center size-12 rounded-full cursor-pointer text-gray-200 hover:text-white hover:bg-white/15"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="relative bg-white shadow-sm">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ title() }}</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px6 lg:px-8">
+      <router-outlet />
+    </div>
+  </main>
+</div>
