@@ -26,7 +26,11 @@
           </div>
         </div>
         <div class="hidden md:block">
-          <div class="flex item-center ms-6">
+          <div class="flex items-center ms-6 gap-2">
+            <span class="text-sm font-medium text-gray-200">
+              Hi, {{ user()?.name }}!
+            </span>
+
             <button
               (click)="logout()"
               class="flex items-center justify-center size-12 rounded-full cursor-pointer text-gray-200 hover:text-white hover:bg-white/15"
