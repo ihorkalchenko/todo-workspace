@@ -1,6 +1,19 @@
-import {Controller, Get, NotFoundException, Param, ParseIntPipe, Query} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Query,
+  Req,
+  UseGuards
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from '@todo-workspace/shared-interfaces';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -20,5 +33,11 @@ export class UsersController {
     }
 
     return user;
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  async updateMe(@Req() req: any, @Body() body: UpdateUserDto): Promise<User> {
+    return await this.usersService.updateUser(req.user.id, body);
   }
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { DRIZZLE } from '../../db/db.module';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schemas';
@@ -51,6 +51,25 @@ export class UsersService {
         ...data,
         password: hashedPassword,
       }).returning({ ...returningFields });
+
+    return user;
+  }
+
+  async updateUser(id: number, data: Partial<typeof schema.users.$inferInsert>): Promise<User> {
+    if (data.email) {
+      const existing = await this.findByEmail(data.email);
+      if (existing && existing.id !== id) {
+        throw new ConflictException('Email already in use by another user');
+      }
+    }
+
+    const { password, ...returningFields } = getTableColumns(schema.users);
+
+    const [user] = await this.db
+      .update(schema.users)
+      .set(data)
+      .where(eq(schema.users.id, id))
+      .returning({ ...returningFields });
 
     return user;
   }
