@@ -54,4 +54,16 @@ export class UsersService {
 
     return user;
   }
+
+  async updateUser(id: number, data: Partial<typeof schema.users.$inferInsert>): Promise<User> {
+    const { password, ...returningFields } = getTableColumns(schema.users);
+
+    const [user] = await this.db
+      .update(schema.users)
+      .set(data)
+      .where(eq(schema.users.id, id))
+      .returning({ ...returningFields });
+
+    return user;
+  }
 }
