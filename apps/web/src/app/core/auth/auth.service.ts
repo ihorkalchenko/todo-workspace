@@ -18,6 +18,12 @@ export class AuthService {
     );
   }
 
+  updateMe(data: Partial<User>) {
+    return this.http.patch<User>(`/api/users/me`, data).pipe(
+      tap(updatedUser => this.user.set(updatedUser))
+    );
+  }
+
   signup(data: any) {
     return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, data).pipe(
       tap(({ user }) => this.user.set(user)),
