@@ -43,7 +43,7 @@ export class NotificationService {
   private async addNotification(type: NotificationType, message: string) {
     await this.ensureContainerExists();
 
-    const id = Date.now().toString();
+    const id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
     const newNotification: Notification = { id, type, message };
 
     this.notifications.update((list) => [...list, newNotification]);
