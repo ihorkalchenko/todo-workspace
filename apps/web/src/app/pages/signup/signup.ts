@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { EMAIL_REGEXP, PASSWORD_REGEXP } from '../../shared/regexp/regexp';
-import { AuthService } from '../../core/auth/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
+
+import { MIN_NAME_LENGTH } from '@todo-workspace/shared-interfaces';
+import { EMAIL_REGEXP, PASSWORD_REGEXP } from '../../shared/regexp/regexp';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   templateUrl: './signup.html',
@@ -17,9 +19,18 @@ export class SignupPage {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly form =  new FormGroup({
-    name: new FormControl('', { validators: [Validators.required, Validators.minLength(3)], nonNullable: true }),
-    email: new FormControl('', { validators: [Validators.required, Validators.pattern(EMAIL_REGEXP)], nonNullable: true }),
-    password: new FormControl('', { validators: [Validators.required, Validators.pattern(PASSWORD_REGEXP)], nonNullable: true }),
+    name: new FormControl(
+      '',
+      { validators: [Validators.required, Validators.minLength(MIN_NAME_LENGTH)], nonNullable: true }
+    ),
+    email: new FormControl(
+      '',
+      { validators: [Validators.required, Validators.pattern(EMAIL_REGEXP)], nonNullable: true }
+    ),
+    password: new FormControl(
+      '',
+      { validators: [Validators.required, Validators.pattern(PASSWORD_REGEXP)], nonNullable: true }
+    ),
   });
 
   readonly show = signal<boolean>(false);

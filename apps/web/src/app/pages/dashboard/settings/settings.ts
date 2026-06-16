@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 
+import { MIN_NAME_LENGTH } from '@todo-workspace/shared-interfaces';
 import { EMAIL_REGEXP } from '../../../shared/regexp/regexp';
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -21,7 +22,7 @@ export class SettingsPage {
   readonly form = new FormGroup({
     name: new FormControl(
       this.user()?.name || '',
-      { validators: [Validators.required, Validators.minLength(3)], nonNullable: true },
+      { validators: [Validators.required, Validators.minLength(MIN_NAME_LENGTH)], nonNullable: true },
     ),
     email: new FormControl(
       this.user()?.email || '',
