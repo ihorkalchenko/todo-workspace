@@ -5,7 +5,7 @@ This is the "web" application of the Todo Workspace, built with **Angular (v21+)
 - **Framework:** Angular (Standalone Components)
 - **State Management:** Angular Signals
 - **Routing:** Angular Router with lazy loading and component input binding
-- **Styling:** Vanilla CSS (`src/styles.css`)
+- **Styling:** Tailwind CSS v4 (configured via `@tailwindcss/postcss` and imported in `src/styles.css`)
 - **Build System:** Nx / Angular CLI
 
 ## Architecture
