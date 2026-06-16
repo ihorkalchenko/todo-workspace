@@ -1,9 +1,10 @@
 import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { MIN_NAME_LENGTH } from '@todo-workspace/shared-interfaces';
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  @MinLength(3)
+  @MinLength(MIN_NAME_LENGTH)
   name?: string;
 
   @IsOptional()
