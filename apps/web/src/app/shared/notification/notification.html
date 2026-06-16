@@ -1,0 +1,51 @@
+<div class="fixed top-19 right-4 z-50 flex flex-col gap-3 max-w-full pointer-events-none">
+  @for (n of notifications(); track n.id) {
+    <div
+      class="pointer-events-auto flex items-start gap-3 w-full bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-100 p-4 border-s-4 transition-all duration-300 animate-slide-in"
+      [class.border-s-green-500]="n.type === 'success'"
+      [class.border-s-red-500]="n.type === 'error'"
+      [class.border-s-blue-500]="n.type === 'info'"
+      role="alert"
+    >
+      <!-- icon -->
+      <div
+        class="flex-shrink-0 p-1 bg-green-50 text-green-600 rounded-full"
+        [ngClass]="{
+          'bg-green-50 text-green-600': n.type === 'success',
+          'bg-red-50 text-red-600': n.type === 'error',
+          'bg-blue-50 text-blue-600': n.type === 'info'
+        }"
+      >
+        @if (n.type === 'success') {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+          </svg>
+        } @else if (n.type === 'error') {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+        } @else if (n.type === 'info') {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.852l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+          </svg>
+        }
+      </div>
+
+      <!-- message -->
+      <div class="flex-1 text-sm font-medium text-gray-800 self-center pe-2 break-words">
+        {{ n.message }}
+      </div>
+
+      <!-- action -->
+      <button
+        type="button"
+        (click)="remove(n.id)"
+        class="flex-shrink-0 self-center text-gray-400 hover:text-gray-600 focus:outline-hidden transition-colors cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  }
+</div>

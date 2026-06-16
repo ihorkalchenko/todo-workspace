@@ -6,6 +6,8 @@ import { finalize } from 'rxjs';
 import { MIN_NAME_LENGTH } from '@todo-workspace/shared-interfaces';
 import { EMAIL_REGEXP } from '../../../shared/regexp/regexp';
 import { AuthService } from '../../../core/auth/auth.service';
+import { NotificationService } from '../../../shared/notification/notification.service';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
 
 @Component({
   selector: 'app-settings',
@@ -14,8 +16,10 @@ import { AuthService } from '../../../core/auth/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsPage {
-  private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
 
   readonly user = this.authService.user;
 
@@ -31,15 +35,18 @@ export class SettingsPage {
   });
 
   readonly loading = signal(false);
-  readonly success = signal(false);
-  readonly errorMessage = signal<string | null>(null);
 
-  submit() {
+  async submit() {
     if (this.form.invalid || this.loading()) return;
 
+    const confirmed = await this.confirmDialogService.confirm({
+      title: 'Save changes',
+      message: 'Are you sure you want to update your profile settings?',
+    });
+
+    if (!confirmed) return;
+
     this.loading.set(true);
-    this.success.set(false);
-    this.errorMessage.set(null);
 
     this.authService
       .updateMe(this.form.getRawValue())
@@ -48,13 +55,8 @@ export class SettingsPage {
         finalize(() => this.loading.set(false)),
       )
       .subscribe({
-        next: () => {
-          this.success.set(true);
-          setTimeout(() => this.success.set(false), 3000);
-        },
-        error: err => {
-          this.errorMessage.set(err.error?.message || 'Failed to update profile.');
-        }
+        next: () => this.notificationService.success('Profile updated successfully.'),
+        error: err => this.notificationService.error(err.error?.message || 'Failed to update profile.'),
       });
   }
 }
