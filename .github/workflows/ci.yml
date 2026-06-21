@@ -33,7 +33,7 @@ jobs:
         run: npm install
 
       - name: Derive NX Base and Head SHAs
-        run: nrwl/nx-set-shas@v4
+        uses: nrwl/nx-set-shas@v4
 
       - name: Run Linters
         run: npx nx affected -t lint
