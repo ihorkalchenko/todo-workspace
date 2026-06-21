@@ -30,7 +30,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Derive NX Base and Head SHAs
         run: nrwl/nx-set-shas@v4
