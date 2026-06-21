@@ -1,0 +1,45 @@
+name: CI
+
+on:
+
+  # FUTURE USE: Uncomment this section when you are ready to set up
+  # Continuous Deployment (CD) to production from the main branch.
+  # push:
+  #   branches: [ main ]
+
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }} - ${{ github.event.number }} - ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Derive NX Base and Head SHAs
+        run: nrwl/nx-set-shas@v4
+
+      - name: Run Linters
+        run: npx nx affected -t lint
+
+      - name: Run Unit Tests
+        run: npx nx affected -t test --parallel=2
+
+      - name: Run Production Builds
+        run: npx nx affected -t build --configuration=production
