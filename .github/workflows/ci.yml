@@ -30,7 +30,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --no-audit --no-fund
+        run: NPM_CONFIG_AUDIT=false npm ci --no-fund
 
       - name: Derive NX Base and Head SHAs
         uses: nrwl/nx-set-shas@v4
