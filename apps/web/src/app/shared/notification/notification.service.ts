@@ -16,7 +16,7 @@ export class NotificationService {
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(EnvironmentInjector);
 
-  private containerRef?: ComponentRef<any>;
+  private containerRef?: ComponentRef<unknown>;
 
   readonly notifications = signal<Notification[]>([]);
 

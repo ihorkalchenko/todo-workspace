@@ -38,7 +38,7 @@ export class DashboardPage {
       .logout()
       .subscribe({
         next: () => this.router.navigate(['/login']),
-        error: err => this.router.navigate(['/login']),
+        error: () => this.router.navigate(['/login']),
     });
   }
 }
