@@ -65,4 +65,4 @@ jobs:
 
       - name: CI Failure Report
         if: failure()
-        run: ech0 "❌ CI Pipeline Failed - Check logs above for details"
+        run: echo "❌ CI Pipeline Failed - Check logs above for details"
