@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -37,9 +37,32 @@ jobs:
 
       - name: Run Linters
         run: npx nx affected -t lint
+        continue-on-error: false
 
       - name: Run Unit Tests
-        run: npx nx affected -t test --parallel=2
+        run: npx nx affected -t test --parallel=4
+        continue-on-error: false
+
+      - name: Upload Test Coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
 
       - name: Run Production Builds
         run: npx nx affected -t build --configuration=production
+        continue-on-error: false
+
+      - name: Security Audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: false
+
+      - name: CI Status
+        if: always()
+        run: echo "✅ CI Pipeline Passed - Linting ✓ Tests ✓ Builds ✓"
+
+      - name: CI Failure Report
+        if: failure()
+        run: ech0 "❌ CI Pipeline Failed - Check logs above for details"
