@@ -24,13 +24,13 @@ export class AuthService {
     );
   }
 
-  signup(data: any) {
+  signup(data: Record<string, unknown>) {
     return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, data).pipe(
       tap(({ user }) => this.user.set(user)),
     );
   }
 
-  login(data: any) {
+  login(data: Record<string, unknown>) {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
       tap(({ user }) => this.user.set(user)),
     );

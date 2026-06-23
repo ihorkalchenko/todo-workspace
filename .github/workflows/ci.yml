@@ -26,20 +26,35 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --no-audit --no-fund
+        run: NPM_CONFIG_AUDIT=false npm ci --no-fund
 
       - name: Derive NX Base and Head SHAs
         uses: nrwl/nx-set-shas@v4
 
       - name: Run Linters
         run: npx nx affected -t lint
+        continue-on-error: false
 
       - name: Run Unit Tests
-        run: npx nx affected -t test --parallel=2
+        run: npx nx affected -t test --parallel=4
+        continue-on-error: false
+
+      - name: Upload Test Coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
 
       - name: Run Production Builds
         run: npx nx affected -t build --configuration=production
+        continue-on-error: false
+
+      - name: Security Audit
+        run: npm audit --audit-level=high
+        continue-on-error: true

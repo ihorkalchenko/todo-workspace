@@ -24,6 +24,13 @@ export default [
           style: 'kebab-case',
         },
       ],
+      "no-useless-escape": [
+        'error',
+        {
+          allowRegexCharacters: ["-", "/", ":"],
+        },
+      ],
+      "@typescript-eslint/no-non-null-assertion": "off",
     },
   },
   {
