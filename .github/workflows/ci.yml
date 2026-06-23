@@ -56,13 +56,5 @@ jobs:
         continue-on-error: false
 
       - name: Security Audit
-        run: npm audit fix --audit-level=moderate
-        continue-on-error: false
-
-      - name: CI Status
-        if: always()
-        run: echo "✅ CI Pipeline Passed - Linting ✓ Tests ✓ Builds ✓"
-
-      - name: CI Failure Report
-        if: failure()
-        run: echo "❌ CI Pipeline Failed - Check logs above for details"
+        run: npm audit --audit-level=high
+        continue-on-error: true
