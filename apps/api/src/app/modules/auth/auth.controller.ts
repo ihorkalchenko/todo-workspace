@@ -13,7 +13,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { AUTH_COOKIE_KEY, AUTH_REFRESH_TOKEN_KEY } from './auth.constants';
+import { AUTH_ACCESS_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from './auth.constants';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { AuthResponse } from '@todo-workspace/shared-interfaces';
@@ -84,7 +84,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Res({  passthrough: true }) res: Response) {
-    res.clearCookie(AUTH_COOKIE_KEY);
+    res.clearCookie(AUTH_ACCESS_TOKEN_KEY);
     res.clearCookie(AUTH_REFRESH_TOKEN_KEY);
 
     return { message: 'Logged out' };
@@ -95,7 +95,7 @@ export class AuthController {
     const accessTokenAge = parseInt(this.configService.get('JWT_MAX_AGE'), 10);
     const refreshTokenAge = parseInt(this.configService.get('JWT_REFRESH_MAX_AGE'), 10);
 
-    res.cookie(AUTH_COOKIE_KEY, accessToken, {
+    res.cookie(AUTH_ACCESS_TOKEN_KEY, accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'strict',

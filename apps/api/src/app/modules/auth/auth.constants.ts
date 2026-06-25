@@ -1,2 +1,2 @@
-export const AUTH_COOKIE_KEY = 'jwt';
-export const AUTH_REFRESH_TOKEN_KEY = 'refreshToken';
+export const AUTH_ACCESS_TOKEN_KEY = 'jwt';
+export const AUTH_REFRESH_TOKEN_KEY = 'jwt-refresh';
