@@ -1,17 +1,13 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { User } from '@todo-workspace/shared-interfaces';
+import { UsersDataService } from './users-data.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsersService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'api/users';
+  private readonly usersDataService = inject(UsersDataService);
 
   getUsers(search?: string) {
-    return this.http.get<User[]>(`${this.apiUrl}`, {
-      params: search ? { search } : {}
-    });
+    return this.usersDataService.getUsers(search);
   }
 }
