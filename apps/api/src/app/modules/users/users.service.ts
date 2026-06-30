@@ -37,7 +37,7 @@ export class UsersService {
       .from(schema.users)
       .where(eq(schema.users.email, email));
 
-    return user;
+    return user as UserWithPassword | undefined;
   }
 
   async createUser(data: Pick<typeof schema.users.$inferInsert, 'name' | 'email' | 'password'>): Promise<User> {
@@ -47,15 +47,13 @@ export class UsersService {
 
     const [user] = await this.db
       .insert(schema.users)
-      .values({
-        ...data,
-        password: hashedPassword,
-      }).returning({ ...returningFields });
+      .values({ ...data, password: hashedPassword })
+      .returning({ ...returningFields });
 
     return user;
   }
 
-  async updateUser(id: number, data: Partial<typeof schema.users.$inferInsert>): Promise<User> {
+  async updateUser(id: number, data: Partial<typeof schema.users.$inferInsert>): Promise<User | undefined> {
     if (data.email) {
       const existing = await this.findByEmail(data.email);
       if (existing && existing.id !== id) {
@@ -71,6 +69,6 @@ export class UsersService {
       .where(eq(schema.users.id, id))
       .returning({ ...returningFields });
 
-    return user;
+    return user as User | undefined;
   }
 }
