@@ -11,7 +11,7 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { Task } from '@todo-workspace/shared-interfaces';
+import { Task } from '@todo-workspace/tasks';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('tasks')

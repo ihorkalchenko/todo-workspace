@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Task } from '@todo-workspace/shared-interfaces';
+import { Task } from '@todo-workspace/tasks';
 
 @Injectable({
   providedIn: 'root'

@@ -36,5 +36,5 @@ Since this project is part of an Nx workspace, use the following commands:
 - **DTOs & Validation:** Always use DTOs (Data Transfer Objects) with validation decorators from `class-validator` for requests containing body or query parameters. Enable strict validation (the global pipe forbids non-whitelisted properties).
 - **Authentication Guards:** Protect endpoints using `@UseGuards(JwtAuthGuard)`. The guard automatically reads the JWT token from cookies and appends the user context to the request (`req.user`).
 - **Error Handling:** Avoid manual try/catch formatting for standard HTTP errors. Instead, throw appropriate built-in NestJS exceptions (e.g., `ConflictException`, `NotFoundException`, `UnauthorizedException`, or `BadRequestException`).
-- **Shared Contracts:** Reference shared types/interfaces from `@todo-workspace/shared-interfaces` (`libs/shared`) to ensure synchronization between NestJS endpoints and Angular services.
+- **Shared Contracts:** Reference shared types/interfaces from the domain-specific shared libraries (`@todo-workspace/auth`, `@todo-workspace/constants`, `@todo-workspace/tasks`, and `@todo-workspace/users`) to ensure synchronization between NestJS endpoints and Angular services.
 - **Quotes:** Use single quotes for imports, module decorators, and method strings unless template strings or JSON structures demand otherwise.

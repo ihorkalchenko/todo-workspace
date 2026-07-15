@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
-      "@todo-workspace/shared-interfaces": ["./libs/shared/src/index.ts"]
+      "@todo-workspace/constants": ["./libs/shared/constants/src/index.ts"],
+      "@todo-workspace/users": ["./libs/shared/users/src/index.ts"],
+      "@todo-workspace/auth": ["./libs/shared/auth/src/index.ts"],
+      "@todo-workspace/tasks": ["./libs/shared/tasks/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

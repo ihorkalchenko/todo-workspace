@@ -16,7 +16,7 @@ import { AuthService } from './auth.service';
 import { AUTH_ACCESS_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from './auth.constants';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
-import { AuthResponse } from '@todo-workspace/shared-interfaces';
+import { AuthResponse } from '@todo-workspace/auth';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 

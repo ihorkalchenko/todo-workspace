@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TaskStatus } from '@todo-workspace/shared-interfaces';
+import { TaskStatus } from '@todo-workspace/tasks';
 import { TasksService } from '../../../core/tasks/tasks.service';
 import { TaskSearchComponent } from './task-search/task-search';
 import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';

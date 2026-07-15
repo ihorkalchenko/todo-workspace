@@ -3,7 +3,8 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
 
-import { AuthResponse, User } from '@todo-workspace/shared-interfaces';
+import { User } from '@todo-workspace/users';
+import { AuthResponse } from '@todo-workspace/auth';
 
 @Injectable({
   providedIn: 'root',
