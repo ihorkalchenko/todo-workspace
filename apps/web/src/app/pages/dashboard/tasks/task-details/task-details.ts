@@ -4,7 +4,8 @@ import { TasksService } from '../../../../core/tasks/tasks.service';
 import { debounceTime, distinctUntilChanged, of } from 'rxjs';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TaskStatus, User } from '@todo-workspace/shared-interfaces';
+import { User } from '@todo-workspace/users';
+import { TaskStatus } from '@todo-workspace/tasks';
 import { UsersService } from '../../../../core/users/users.service';
 
 @Component({

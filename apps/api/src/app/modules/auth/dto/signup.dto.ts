@@ -1,5 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
-import { MIN_NAME_LENGTH, MIN_PASSWORD_LENGTH } from '@todo-workspace/shared-interfaces';
+import { MIN_NAME_LENGTH, MIN_PASSWORD_LENGTH } from '@todo-workspace/constants';
 
 export class SignupDto {
   @IsString()

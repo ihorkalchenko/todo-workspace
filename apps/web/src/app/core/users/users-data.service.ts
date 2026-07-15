@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { User } from '@todo-workspace/shared-interfaces';
+import { User } from '@todo-workspace/users';
 
 @Injectable({
   providedIn: 'root',

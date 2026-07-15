@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { User } from '@todo-workspace/shared-interfaces';
+import { User } from '@todo-workspace/users';
 
 interface InternalAuthResponse {
   readonly access_token: string;

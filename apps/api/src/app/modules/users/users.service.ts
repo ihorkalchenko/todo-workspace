@@ -2,7 +2,7 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { DRIZZLE } from '../../db/db.module';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schemas';
-import { User } from '@todo-workspace/shared-interfaces';
+import { User } from '@todo-workspace/users';
 import { eq, getTableColumns, ilike } from 'drizzle-orm';
 import * as bcrypt from 'bcrypt';
 

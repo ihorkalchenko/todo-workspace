@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 
-import { MIN_NAME_LENGTH } from '@todo-workspace/shared-interfaces';
+import { MIN_NAME_LENGTH } from '@todo-workspace/constants';
 import { EMAIL_REGEXP, PASSWORD_REGEXP } from '../../shared/regexp/regexp';
 import { AuthService } from '../../core/auth/auth.service';
 

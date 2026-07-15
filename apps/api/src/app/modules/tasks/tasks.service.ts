@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Task } from '@todo-workspace/shared-interfaces';
+import { Task } from '@todo-workspace/tasks';
 import { DRIZZLE } from '../../db/db.module';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schemas';
