@@ -8,6 +8,13 @@
       "when": 1780049943223,
       "tag": "0000_far_scorpion",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784556658212,
+      "tag": "0001_wandering_changeling",
+      "breakpoints": true
     }
   ]
 }
