@@ -11,7 +11,7 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { Task } from '@todo-workspace/tasks';
+import { Task, TaskStatus } from '@todo-workspace/tasks';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('tasks')
@@ -61,6 +61,16 @@ export class TasksController {
     if (!deleted) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
+
+    return { success: true };
+  }
+  
+  @Patch(':id/move')
+  async moveTask(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: { status: TaskStatus, order: number },
+  ): Promise<{ success: boolean }> {
+    await this.tasksService.moveTask(id, data.status, data.order);
 
     return { success: true };
   }

@@ -9,6 +9,7 @@ export const tasks = pgTable('tasks', {
   title: text('title').notNull(),
   description: text('description'),
   status: statusEnum('status').default('To Do').notNull(),
+  order: integer('order').default(0).notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
 
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
