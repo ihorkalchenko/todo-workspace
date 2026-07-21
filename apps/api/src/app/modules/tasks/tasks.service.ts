@@ -95,14 +95,14 @@ export class TasksService {
     });
   }
 
-  async moveTask(id: number, targetStatus: TaskStatus, targetOrder: number): Promise<void> {
-    await this.db.transaction(async (tx) => {
+  async moveTask(id: number, targetStatus: TaskStatus, targetOrder: number): Promise<boolean> {
+    return this.db.transaction(async (tx) => {
       const [task] = await tx
         .select()
         .from(schema.tasks)
         .where(eq(schema.tasks.id, id));
 
-      if (!task) throw new Error('Task not found');
+      if (!task) return false;
 
       const sourceStatus = task.status;
       const sourceOrder = task.order;
@@ -171,6 +171,8 @@ export class TasksService {
           .set({ status: targetStatus, order: targetOrder })
           .where(eq(schema.tasks.id, id));
       }
+
+      return true;
     });
   }
 }
