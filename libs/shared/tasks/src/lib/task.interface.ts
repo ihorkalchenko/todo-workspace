@@ -6,9 +6,9 @@ export interface Task {
   readonly description: string | null;
   readonly createdAt: string;
   readonly status: TaskStatus;
-  readonly order: number;
   readonly userId: number;
   readonly user?: {
     readonly name: string;
   }
+  order: number;
 }

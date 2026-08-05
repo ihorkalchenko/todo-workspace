@@ -1,0 +1,15 @@
+<div class="flex items-center justify-between mb-3">
+  <h2 class="font-semibold text-gray-700 uppercase text-sm tracking-wider">{{ title() }}</h2>
+  <span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full font-medium">{{ tasks().length }}</span>
+</div>
+
+<div
+  cdkDropList
+  [cdkDropListData]="tasks()"
+  (cdkDropListDropped)="dropped.emit($event)"
+  class="flex-1 overflow-y-auto space-y-3 min-h-[150px] pb-4 custom-scrollbar"
+>
+  @for (task of tasks(); track task.id) {
+    <app-task-card cdkDrag [task]="task" />
+  }
+</div>

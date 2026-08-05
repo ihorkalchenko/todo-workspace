@@ -1,18 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TaskStatus } from '@todo-workspace/tasks';
+import { Task, TaskStatus } from '@todo-workspace/tasks';
 import { TasksService } from '../../../core/tasks/tasks.service';
 import { TaskSearchComponent } from './task-search/task-search';
 import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
+import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { TaskList } from './task-list/task-list';
 
 @Component({
   selector: 'app-tasks',
   templateUrl: './tasks.html',
   imports: [
-    DatePipe,
     RouterLink,
-    TaskSearchComponent
+    CdkDropListGroup,
+    TaskSearchComponent,
+    TaskList
   ]
 })
 export class TasksPage {
@@ -32,17 +34,17 @@ export class TasksPage {
     return allTasks.filter(({ title }) => title.toLowerCase().includes(query));
   });
 
-  getStatusClasses(status: TaskStatus): string | null {
-    switch (status) {
-      case 'To Do':
-        return 'bg-gray-50 text-gray-600 inset-ring-gray-500/10';
-      case 'Doing':
-        return 'bg-yellow-50 text-yellow-800 inset-ring-gray-600/20';
-      case 'Done':
-        return 'bg-green-50 text-green-700 inset-ring-green-600/20';
-        default:
-          return null;
+  readonly todoTasks = computed(() => this.allTasks().filter(({ status }) => status === 'To Do'));
+  readonly doingTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Doing'));
+  readonly doneTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Done'));
+
+  drop(event: CdkDragDrop<Task[]>, status: TaskStatus) {
+    if (event.previousContainer === event.container && event.previousIndex === event.currentIndex) {
+      return;
     }
+
+    const task = event.previousContainer.data[event.previousIndex];
+    this.tasksService.moveTask(task.id, status, event.currentIndex);
   }
 
   async deleteTask(id: number) {
