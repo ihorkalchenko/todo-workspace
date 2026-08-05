@@ -7,6 +7,7 @@ import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angu
 import { User } from '@todo-workspace/users';
 import { TaskStatus } from '@todo-workspace/tasks';
 import { UsersService } from '../../../../core/users/users.service';
+import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 
 @Component({
   selector: 'app-tasks-details',
@@ -19,6 +20,7 @@ export class TaskDetailsPage {
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly usersService = inject(UsersService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
 
   readonly id = input.required<string>();
   readonly isFullWidth = signal(false);
@@ -57,7 +59,7 @@ export class TaskDetailsPage {
     userId: [null as number | null, Validators.required],
   });
 
-  readonly statuses: TaskStatus[] = ['To Do', 'Doing', 'Done'];
+  readonly statuses: TaskStatus[] = ['To Do', 'Doing', 'Done', 'Archived'];
 
   constructor() {
     this.initTaskEffect();
@@ -85,6 +87,18 @@ export class TaskDetailsPage {
       return;
     }
 
+    const isNew = this.isNew();
+    const confirmed = await this.confirmDialogService.confirm({
+      title: isNew ? 'Create Task': 'Update Task',
+      message: isNew
+        ? 'Are you sure you want to create this task?'
+        : 'Are you sure you want to update this task?',
+    })
+
+    if (!confirmed) {
+      return;
+    }
+
     const id = this.id();
     const rawValue = this.form.getRawValue();
     const taskData = {
@@ -93,7 +107,7 @@ export class TaskDetailsPage {
       userId: rawValue.userId!,
     }
 
-    if (this.isNew()) {
+    if (isNew) {
       this.tasksService.createTask(taskData);
     } else {
       this.tasksService.updateTask(Number(id), {

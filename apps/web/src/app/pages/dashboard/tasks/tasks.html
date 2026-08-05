@@ -1,5 +1,19 @@
-<div class="flex items-center justify-between mb-8">
-  <app-task-search class="md:w-xs" [(query)]="searchQuery" />
+<div class="flex items-center justify-between mb-8 gap-4">
+  <div class="flex items-center gap-4 flex-1">
+    <app-task-search class="md:w-xs" [(query)]="searchQuery" />
+
+    <label for="archivedCtrl" class="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer select-none">
+      <input
+        id="archivedCtrl"
+        type="checkbox"
+        [checked]="showArchived()"
+        (change)="showArchived.set(!showArchived())"
+        class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+      />
+      Show Archived
+    </label>
+  </div>
+
   <a
     [routerLink]="['/tasks', 'new']"
     class="bg-indigo-600 hover:bg-indigo-700 cursor-pointer text-white font-medium py-2 px-4 rounded-sm transition duration-200"
@@ -9,28 +23,38 @@
 </div>
 
 @if (allTasks().length > 0) {
-  <div
-    cdkDropListGroup
-    class="grid grid-cols-1 md:grid-cols-3 gap-4 has-[calc(100vh-216px)] items-start"
-  >
-    <app-task-list
-      title="To Do"
-      [tasks]="todoTasks()"
-      (dropped)="drop($event, 'To Do')"
-    />
+  @if (showArchived()) {
+    <div class="max-w-md">
+      <app-task-list
+        title="Archived Tasks"
+        [tasks]="archivedTasks()"
+        (dropped)="drop($event, 'Archived')"
+      />
+    </div>
+  } @else {
+    <div
+      cdkDropListGroup
+      class="grid grid-cols-1 md:grid-cols-3 gap-4 has-[calc(100vh-216px)] items-start"
+    >
+      <app-task-list
+        title="To Do"
+        [tasks]="todoTasks()"
+        (dropped)="drop($event, 'To Do')"
+      />
 
-    <app-task-list
-      title="Doing"
-      [tasks]="doingTasks()"
-      (dropped)="drop($event, 'Doing')"
-    />
+      <app-task-list
+        title="Doing"
+        [tasks]="doingTasks()"
+        (dropped)="drop($event, 'Doing')"
+      />
 
-    <app-task-list
-      title="Done"
-      [tasks]="doneTasks()"
-      (dropped)="drop($event, 'Done')"
-    />
-  </div>
+      <app-task-list
+        title="Done"
+        [tasks]="doneTasks()"
+        (dropped)="drop($event, 'Done')"
+      />
+    </div>
+  }
 } @else {
   <div class="rounded-sm border border-gray-200 bg-indigo-50 text-gray-700 px-6 py-4 text-center">
     No tasks found. Create a new task to begin tracking your work.
