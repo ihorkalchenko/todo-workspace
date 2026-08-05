@@ -2,7 +2,7 @@ import {integer, pgEnum, pgTable, serial, text, timestamp} from 'drizzle-orm/pg-
 import { relations } from 'drizzle-orm';
 import { users } from './users.schema';
 
-export const statusEnum = pgEnum('status', ['To Do', 'Doing', 'Done']);
+export const statusEnum = pgEnum('status', ['To Do', 'Doing', 'Done', 'Archived']);
 
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),

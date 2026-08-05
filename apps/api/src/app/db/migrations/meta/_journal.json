@@ -15,6 +15,13 @@
       "when": 1784556658212,
       "tag": "0001_wandering_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785931767468,
+      "tag": "0002_amusing_black_cat",
+      "breakpoints": true
     }
   ]
 }
