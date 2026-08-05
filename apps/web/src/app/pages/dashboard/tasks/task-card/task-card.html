@@ -1,0 +1,17 @@
+<div>
+  <h3 class="font-medium text-gray-900 text-sm mb-1">{{ task().title }}</h3>
+
+  @if (task().description) {
+    <p class="text-xs text-gray-500 line-clamp-2">{{ task().description }}</p>
+  }
+</div>
+
+<div class="flex items-center justify-between mt-1 text-[11px] text-gray-400">
+  <span>{{ task().createdAt | date: 'dd.MM.yyyy' }}</span>
+
+  @if (task().user) {
+    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
+      {{ task().user?.name }}
+    </span>
+  }
+</div>
