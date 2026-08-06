@@ -67,7 +67,9 @@ export class TasksService {
       .where(eq(schema.tasks.id, id))
       .returning();
 
-    return task as Task | undefined;
+    if (!task) return undefined;
+
+    return this.getTask(id);
   }
 
   async deleteTask(id: number): Promise<boolean> {
