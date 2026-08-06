@@ -22,6 +22,7 @@ export class TasksPage {
   private readonly confirmDialogService = inject(ConfirmDialogService);
 
   readonly searchQuery = signal<string>('');
+  readonly showArchived = signal<boolean>(false);
 
   readonly allTasks = computed(() => {
     const query = this.searchQuery().toLowerCase();
@@ -37,6 +38,7 @@ export class TasksPage {
   readonly todoTasks = computed(() => this.allTasks().filter(({ status }) => status === 'To Do'));
   readonly doingTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Doing'));
   readonly doneTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Done'));
+  readonly archivedTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Archived'));
 
   drop(event: CdkDragDrop<Task[]>, status: TaskStatus) {
     if (event.previousContainer === event.container && event.previousIndex === event.currentIndex) {
