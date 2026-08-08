@@ -1,6 +1,7 @@
 import {integer, pgEnum, pgTable, serial, text, timestamp} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users.schema';
+import { comments } from './comments.schema';
 
 export const statusEnum = pgEnum('status', ['To Do', 'Doing', 'Done', 'Archived']);
 
@@ -15,9 +16,10 @@ export const tasks = pgTable('tasks', {
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
 });
 
-export const tasksRelations = relations(tasks, ({ one }) => ({
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
   user: one(users, {
     fields: [tasks.userId],
     references: [users.id],
   }),
+  comments: many(comments),
 }));
