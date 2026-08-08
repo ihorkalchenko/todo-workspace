@@ -16,11 +16,20 @@ import { Comment } from '@todo-workspace/tasks';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
+/**
+ * TODO: there are the next things that should be done:
+ * 1. add edit/update endpoint,
+ * 2. add reply endpoint
+ *
+ * */
 @Controller('tasks/:taskId/comments')
 @UseGuards(JwtAuthGuard)
 export class CommentsController {
   constructor(private commentsService: CommentsService) {}
 
+  /**
+   * TODO: implement load more chunks
+   * */
   @Get()
   async getComments(@Param('taskId', ParseIntPipe) taskId: number): Promise<Comment[]> {
     return this.commentsService.getCommentsForTask(taskId);
