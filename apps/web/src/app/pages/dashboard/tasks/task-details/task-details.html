@@ -3,8 +3,9 @@
     routerLink="/tasks"
     class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200"
   >
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+         class="size-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
     </svg>
     Back to tasks
   </a>
@@ -27,17 +28,21 @@
     <div class="flex items-center justify-end pb-4 border-b border-gray-50">
       <button
         type="button"
-        (click)="toggleWidth()"
+        (click)="isFullWidth.set(!isFullWidth())"
         class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-sm transition-all duration-200 cursor-pointer"
         [title]="isFullWidth() ? 'Collapse' : 'Expand'"
       >
         @if (isFullWidth()) {
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+               stroke="currentColor" class="size-4">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"/>
           </svg>
         } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+               stroke="currentColor" class="size-4">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/>
           </svg>
         }
       </button>
@@ -137,24 +142,25 @@
             (click)="isDropdownOpen.set(false)"
           ></div>
 
-          <div class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-xl max-h-60 overflow-auto">
+          <div
+            class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-xl max-h-60 overflow-auto">
             @let foundUsers = usersResource.value() ?? [];
             @let searchTerm = userSearchInput.value ?? '';
 
             @if (foundUsers.length > 0) {
-             <ul>
-               @for (user of foundUsers; track user.id) {
-                 <li role="listitem" class="border-b border-gray-50 last:border-0">
-                   <button
-                     type="button"
-                     (click)="selectUser(user)"
-                     class="w-full text-start px-4 py-3 font-medium text-gray-900 hover:bg-indigo-50 cursor-pointer block"
-                   >
-                     {{ user.name }}
-                   </button>
-                 </li>
-               }
-             </ul>
+              <ul>
+                @for (user of foundUsers; track user.id) {
+                  <li role="listitem" class="border-b border-gray-50 last:border-0">
+                    <button
+                      type="button"
+                      (click)="selectUser(user)"
+                      class="w-full text-start px-4 py-3 font-medium text-gray-900 hover:bg-indigo-50 cursor-pointer block"
+                    >
+                      {{ user.name }}
+                    </button>
+                  </li>
+                }
+              </ul>
             } @else if (searchTerm.length >= 3 && !usersResource.isLoading()) {
               <div class="p-4 text-sm text-gray-500 italic bg-gray-50">
                 No users found matching "{{ searchTerm }}"
@@ -165,7 +171,8 @@
 
         @if (isDropdownOpen() && (usersResource.value() ?? []).length > 0) {
 
-          <ul class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-xl max-h-60 overflow-auto">
+          <ul
+            class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-xl max-h-60 overflow-auto">
             @for (user of (usersResource.value() ?? []); track user.id) {
               <li role="listitem">
                 <button
@@ -180,7 +187,7 @@
           </ul>
         }
 
-        <input type="hidden" formControlName="userId" />
+        <input type="hidden" formControlName="userId"/>
 
         @if (form.get('userId')?.invalid && form.get('userId')?.touched) {
           <p class="mt-1 text-xs text-red-600">
@@ -207,5 +214,9 @@
         </button>
       </div>
     </form>
+
+    @if (!isNew()) {
+      <app-comments [task]="taskResource.value()" />
+    }
   </div>
 }

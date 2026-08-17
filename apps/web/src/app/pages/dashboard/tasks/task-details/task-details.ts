@@ -8,11 +8,16 @@ import { User } from '@todo-workspace/users';
 import { TaskStatus } from '@todo-workspace/tasks';
 import { UsersService } from '../../../../core/users/users.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
+import { CommentsComponent } from '../comments/comments';
 
 @Component({
   selector: 'app-tasks-details',
   templateUrl: './task-details.html',
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [
+    RouterLink,
+    ReactiveFormsModule,
+    CommentsComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskDetailsPage {
@@ -40,16 +45,16 @@ export class TaskDetailsPage {
     this.userSearchInput.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-    )
+    ),
   );
 
   readonly usersResource = rxResource({
     params: () => ({ search: this.debouncedSearchTerm() }),
     stream: ({ params: { search } }) => {
-     if (!search || search.length < 3) return of([]);
+      if (!search || search.length < 3) return of([]);
 
-     return this.usersService.getUsers(search);
-    }
+      return this.usersService.getUsers(search);
+    },
   });
 
   readonly form = this.formBuilder.group({
@@ -62,11 +67,23 @@ export class TaskDetailsPage {
   readonly statuses: TaskStatus[] = ['To Do', 'Doing', 'Done', 'Archived'];
 
   constructor() {
-    this.initTaskEffect();
-  }
+    effect(() => {
+      const task = this.taskResource.value();
 
-  toggleWidth() {
-    this.isFullWidth.update(state => !state);
+      if (task) {
+        this.form.patchValue({
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          userId: task.userId,
+        });
+
+        if (task.user?.name) {
+          this.form.patchValue({ userId: task.userId });
+          this.userSearchInput.setValue(task.user.name, { emitEvent: false });
+        }
+      }
+    });
   }
 
   selectUser(user: User) {
@@ -89,11 +106,11 @@ export class TaskDetailsPage {
 
     const isNew = this.isNew();
     const confirmed = await this.confirmDialogService.confirm({
-      title: isNew ? 'Create Task': 'Update Task',
+      title: isNew ? 'Create Task' : 'Update Task',
       message: isNew
         ? 'Are you sure you want to create this task?'
         : 'Are you sure you want to update this task?',
-    })
+    });
 
     if (!confirmed) {
       return;
@@ -105,7 +122,7 @@ export class TaskDetailsPage {
       title: rawValue.title!,
       description: rawValue.description!,
       userId: rawValue.userId!,
-    }
+    };
 
     if (isNew) {
       this.tasksService.createTask(taskData);
@@ -117,25 +134,5 @@ export class TaskDetailsPage {
     }
 
     await this.router.navigate(['/tasks']);
-  }
-
-  private initTaskEffect() {
-    effect(() => {
-      const task = this.taskResource.value();
-
-      if (task) {
-        this.form.patchValue({
-          title: task.title,
-          description: task.description,
-          status: task.status,
-          userId: task.userId,
-        });
-
-        if (task.user?.name) {
-          this.form.patchValue({ userId: task.userId });
-          this.userSearchInput.setValue(task.user.name, { emitEvent: false });
-        }
-      }
-    });
   }
 }
