@@ -1,0 +1,39 @@
+<div class="mt-8 pt-8 border-t border-gray-200">
+  <h3 class="text-sm font-semibold text-gray-700 italic uppercase tracking-wider mb-4">
+    Comments
+  </h3>
+
+  @if (isLoading()) {
+    <div class="py-4 text-center text-gray-400 text-sm italic">
+      Loading comments...
+    </div>
+  } @else {
+    <div class="space-y-4 mb-6 max-h-72 overflow-y-auto pe-2">
+      @for (comment of comments(); track comment.id) {
+        <app-comment
+          [task]="task()"
+          [comment]="comment"
+          [currentUser]="currentUser()"
+        />
+      }
+    </div>
+  }
+</div>
+
+<div class="flex items-start gap-2 mt-4">
+  <textarea
+    placeholder="Write a comment..."
+    rows="2"
+    [value]="newCommentText()"
+    (input)="newCommentText.set($any($event.target).value)"
+    class="flex-1 px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm resize-none"
+  ></textarea>
+  <button
+    type="button"
+    (click)="postComment()"
+    [disabled]="!newCommentText().trim()"
+    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-sm shadow-sm cursor-pointer whitespace-nowrap transition-colors"
+  >
+    Comment
+  </button>
+</div>

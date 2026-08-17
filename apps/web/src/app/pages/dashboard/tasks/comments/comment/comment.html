@@ -1,0 +1,26 @@
+<div class="flex-1">
+  <div class="flex items-center gap-2 mb-1">
+      <span class="text-xs font-bold text-gray-700">
+        {{ comment().user?.name || 'Unknown' }}
+      </span>
+    <span class="text-[10px] text-gray-400">
+        {{ comment().createdAt | date: 'short' }}
+      </span>
+  </div>
+  <p class="text-sm text-gray-600">
+    {{ comment().content }}
+  </p>
+</div>
+
+@if (comment().userId === currentUser()?.id) {
+  <button
+    type="button"
+    title="Delete comment"
+    (click)="deleteComment(comment().id)"
+    class="text-gray-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 6m-4.74-3 1.18 4.72M4.5 5.05h15M10.5 3h3M8.25 5.05l.34-1.36c.07-.28.29-.49.58-.49h5.66c.29 0 .51.21.58.49l.34 1.36M19.5 5.05v13.5c0 1.1-.9 2-2 2H6.5c-1.1 0-2-.9-2-2V5.05" />
+    </svg>
+  </button>
+}
