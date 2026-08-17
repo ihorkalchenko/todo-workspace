@@ -26,7 +26,12 @@ export class CommentsComponent {
   constructor() {
     effect(() => {
       const task = this.task();
-      task ? this.commentsService.loadComments(task.id) : this.commentsService.clearComments();
+
+      if (task) {
+        this.commentsService.loadComments(task.id);
+      } else {
+        this.commentsService.clearComments();
+      }
     });
   }
 
