@@ -33,7 +33,7 @@ export class CommentComponent {
     });
 
     if (confirmed) {
-      this.commentsService.deleteComment(task.id, commentId);
+      this.commentsService.deleteComment(task.id, commentId).subscribe();
     }
   }
 }
