@@ -33,7 +33,7 @@ export class ActivitiesService {
       .from(schema.activities)
       .where(eq(schema.activities.taskId, taskId));
 
-    const total = Number(count);
+    const total = Number(count ?? 0);
     const hasMore = offset + data.length < total;
 
     return {
