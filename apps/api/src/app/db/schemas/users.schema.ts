@@ -2,6 +2,7 @@ import { pgTable, serial, text, varchar } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { tasks } from './tasks.schema';
 import { comments } from './comments.schema';
+import { activities } from './activities.schema';
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -13,4 +14,5 @@ export const users = pgTable('users', {
 export const usersRelations = relations(users, ({ many }) => ({
   tasks: many(tasks),
   comments: many(comments),
+  activities: many(activities)
 }));

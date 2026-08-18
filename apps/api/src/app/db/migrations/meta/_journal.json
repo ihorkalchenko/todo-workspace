@@ -29,6 +29,13 @@
       "when": 1786021251035,
       "tag": "0003_aromatic_shen",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787043472903,
+      "tag": "0004_aromatic_annihilus",
+      "breakpoints": true
     }
   ]
 }

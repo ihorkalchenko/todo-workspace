@@ -2,6 +2,7 @@ import {integer, pgEnum, pgTable, serial, text, timestamp} from 'drizzle-orm/pg-
 import { relations } from 'drizzle-orm';
 import { users } from './users.schema';
 import { comments } from './comments.schema';
+import { activities } from './activities.schema';
 
 export const statusEnum = pgEnum('status', ['To Do', 'Doing', 'Done', 'Archived']);
 
@@ -22,4 +23,5 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     references: [users.id],
   }),
   comments: many(comments),
+  activities: many(activities),
 }));

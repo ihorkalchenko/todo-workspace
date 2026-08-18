@@ -11,39 +11,65 @@ export class CommentsService {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof schema>) {}
 
   async createComment(taskId: number, userId: number, content: string): Promise<Comment> {
-    const [newComment] = await this.db
-      .insert(schema.comments)
-      .values({
-        taskId,
-        userId,
-        content,
-      })
-      .returning();
+    return this.db.transaction(async (tx) => {
+      const [newComment] = await tx
+        .insert(schema.comments)
+        .values({
+          taskId,
+          userId,
+          content,
+        })
+        .returning();
 
-    return this.db.query.comments.findFirst({
-      where: eq(schema.comments.id, newComment.id),
-      with: {
-        user: {
-          columns: {
-            name: true,
+      await tx
+        .insert(schema.activities)
+        .values({
+          taskId,
+          userId,
+          action: 'commented',
+        });
+
+      return tx.query.comments.findFirst({
+        where: eq(schema.comments.id, newComment.id),
+        with: {
+          user: {
+            columns: {
+              name: true,
+            },
           },
         },
-      },
+      });
     });
   }
 
   async deleteComment(commentId: number, userId: number): Promise<boolean> {
-    const [deleteComment] = await this.db
-      .delete(schema.comments)
-      .where(
-        and(
-          eq(schema.comments.id, commentId),
-          eq(schema.comments.userId, userId)
-        )
-      )
-      .returning();
+    return this.db.transaction(async (tx) => {
+      const [comment] = await tx
+        .select()
+        .from(schema.comments)
+        .where(
+          and(
+            eq(schema.comments.id, commentId),
+            eq(schema.comments.userId, userId),
+          )
+        );
 
-    return !!deleteComment;
+      if (!comment) return false;
+
+      await tx
+        .delete(schema.comments)
+        .where(eq(schema.comments.id, commentId));
+
+      await tx
+        .insert(schema.activities)
+        .values({
+          taskId: comment.taskId,
+          userId,
+          action: 'deleted a comment',
+        });
+
+      return true;
+    });
   }
 
   async getCommentsForTask(taskId: number): Promise<Comment[]> {
