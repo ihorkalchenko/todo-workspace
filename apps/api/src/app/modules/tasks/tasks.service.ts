@@ -96,11 +96,22 @@ export class TasksService {
       }
 
       if (data.description !== undefined && data.description !== existedTask.description) {
-        changes.push('description');
+        changes.push(`description to "${data.description}"`);
       }
 
       if (data.userId !== undefined && data.userId !== existedTask.userId) {
-        changes.push('assignee');
+        if (data.userId === null) {
+          changes.push('assignee to "Unassigned"');
+        } else {
+          const [assignedUser] = await tx
+            .select({ name: schema.users.name })
+            .from(schema.users)
+            .where(eq(schema.users.id, data.userId));
+
+          const assigneeName = assignedUser?.name || "Unknown";
+
+          changes.push(`assignee to "${assigneeName}"`);
+        }
       }
 
       if (data.status && data.status !== existedTask.status) {
@@ -118,7 +129,7 @@ export class TasksService {
           });
       }
 
-      return this.getTask(id);
+      return updatedTask as Task;
     });
   }
 
