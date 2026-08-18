@@ -33,7 +33,10 @@ export class TasksService {
     }) as unknown as Promise<Task | undefined>;
   }
 
-  async createTask(data: Pick<Task, 'title' | 'description' | 'userId'>): Promise<Task> {
+  async createTask(
+    userId: number,
+    data: Pick<Task, 'title' | 'description' | 'userId'>
+  ): Promise<Task> {
     return this.db.transaction(async (tx) => {
       const [result] = await tx
         .select({ maxOrder:  sql<number>`coalesce(max(${schema.tasks.order}), -1)` })
@@ -53,23 +56,70 @@ export class TasksService {
         })
         .returning();
 
+      await tx
+        .insert(schema.activities)
+        .values({
+          taskId: task.id,
+          userId,
+          action: 'created',
+        });
+
       return task as Task;
     });
   }
 
   async updateTask(
+    userId: number,
     id: number,
     data: Partial<Pick<Task, 'title' | 'description' | 'status' | 'userId'>>
   ): Promise<Task | undefined> {
-    const [task] = await this.db
-      .update(schema.tasks)
-      .set(data)
-      .where(eq(schema.tasks.id, id))
-      .returning();
+    return this.db.transaction(async (tx) => {
+      const [existedTask] = await tx
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.id, id));
 
-    if (!task) return undefined;
+      if (!existedTask) return undefined;
 
-    return this.getTask(id);
+      const [updatedTask] = await tx
+        .update(schema.tasks)
+        .set(data)
+        .where(eq(schema.tasks.id, id))
+        .returning();
+
+      if (!updatedTask) return undefined;
+
+      const changes: string[] = [];
+
+      if (data.title && data.title !== existedTask.title) {
+        changes.push(`title to "${data.title}"`);
+      }
+
+      if (data.description !== undefined && data.description !== existedTask.description) {
+        changes.push('description');
+      }
+
+      if (data.userId !== undefined && data.userId !== existedTask.userId) {
+        changes.push('assignee');
+      }
+
+      if (data.status && data.status !== existedTask.status) {
+        changes.push(`status to "${data.status}"`);
+      }
+
+      if (changes.length > 0) {
+        await tx
+          .insert(schema.activities)
+          .values({
+            taskId: id,
+            userId,
+            action: 'updated',
+            details: `Changed ${changes.join(', ')}`,
+          });
+      }
+
+      return this.getTask(id);
+    });
   }
 
   async deleteTask(id: number): Promise<boolean> {
@@ -97,7 +147,12 @@ export class TasksService {
     });
   }
 
-  async moveTask(id: number, targetStatus: TaskStatus, targetOrder: number): Promise<boolean> {
+  async moveTask(
+    userId: number,
+    id: number,
+    targetStatus: TaskStatus,
+    targetOrder: number
+  ): Promise<boolean> {
     return this.db.transaction(async (tx) => {
       const [task] = await tx
         .select()
@@ -106,11 +161,10 @@ export class TasksService {
 
       if (!task) return false;
 
-      const sourceStatus = task.status;
-      const sourceOrder = task.order;
+      const { status: sourceStatus, order: sourceOrder } = task;
 
       if (sourceStatus === targetStatus) {
-        if (sourceOrder === targetOrder) return;
+        if (sourceOrder === targetOrder) return true;
 
         if (targetOrder > sourceOrder) {
           // decrement order for tasks shifted upward in the list
@@ -172,6 +226,15 @@ export class TasksService {
           .update(schema.tasks)
           .set({ status: targetStatus, order: targetOrder })
           .where(eq(schema.tasks.id, id));
+
+        await tx
+          .insert(schema.activities)
+          .values({
+            taskId: id,
+            userId,
+            action: 'moved',
+            details: `from "${sourceStatus}" to "${targetStatus}"`,
+          });
       }
 
       return true;

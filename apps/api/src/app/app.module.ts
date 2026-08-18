@@ -7,6 +7,7 @@ import { UsersModule } from './modules/users/users.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { ActivitiesModule } from './modules/activities/activities.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CommentsModule } from './modules/comments/comments.module';
     TasksModule,
     AuthModule,
     CommentsModule,
+    ActivitiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

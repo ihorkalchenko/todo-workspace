@@ -8,7 +8,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { Task } from '@todo-workspace/tasks';
@@ -37,16 +38,20 @@ export class TasksController {
   }
 
   @Post()
-  async createTask(@Body() data: Pick<Task, 'title' | 'description' | 'userId'>): Promise<Task> {
-    return await this.tasksService.createTask(data);
+  async createTask(
+    @Req() req: any,
+    @Body() data: Pick<Task, 'title' | 'description' | 'userId'>,
+  ): Promise<Task> {
+    return await this.tasksService.createTask(req.user.id, data);
   }
 
   @Patch(':id')
   async updateTask(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
     @Body() data: Partial<Pick<Task, 'title' | 'description' | 'status' | 'userId'>>
   ): Promise<Task> {
-    const task = await this.tasksService.updateTask(id, data);
+    const task = await this.tasksService.updateTask(req.user.id, id, data);
 
     if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
@@ -69,14 +74,15 @@ export class TasksController {
   @Patch(':id/move')
   async moveTask(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
     @Body() data: MoveTaskDto,
   ): Promise<{ success: boolean }> {
-    const success =  await this.tasksService.moveTask(id, data.status, data.order);
+    const success =  await this.tasksService.moveTask(req.user.id, id, data.status, data.order);
 
     if (!success) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
-    
+
     return { success: true };
   }
 }
