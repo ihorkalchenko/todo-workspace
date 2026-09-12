@@ -9,3 +9,11 @@ export interface Activity {
     readonly name: string;
   }
 }
+
+export interface PaginatedActivities {
+  readonly data: Activity[];
+  readonly total: number;
+  readonly page: number;
+  readonly limit: number;
+  readonly hasMore: boolean;
+}
