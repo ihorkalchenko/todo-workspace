@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TasksService } from '../../../../core/tasks/tasks.service';
 import { debounceTime, distinctUntilChanged, of } from 'rxjs';
@@ -9,14 +10,18 @@ import { TaskStatus } from '@todo-workspace/tasks';
 import { UsersService } from '../../../../core/users/users.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { CommentsComponent } from '../comments/comments';
+import { ActivitiesComponent } from '../activities/activities';
 
 @Component({
   selector: 'app-tasks-details',
   templateUrl: './task-details.html',
+  styleUrl: './task-details.css',
   imports: [
     RouterLink,
     ReactiveFormsModule,
     CommentsComponent,
+    NgClass,
+    ActivitiesComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,8 +33,15 @@ export class TaskDetailsPage {
   private readonly confirmDialogService = inject(ConfirmDialogService);
 
   readonly id = input.required<string>();
+
   readonly isFullWidth = signal(false);
   readonly isDropdownOpen = signal(false);
+
+  readonly activeTab = signal<'comments' | 'activities'>('comments');
+  readonly tabs = signal<{ id: 'comments' | 'activities'; title: string }[]>([
+    { id: 'comments', title: 'Comments' },
+    { id: 'activities', title: 'Activities' },
+  ]);
 
   readonly isNew = computed(() => !this.id());
 

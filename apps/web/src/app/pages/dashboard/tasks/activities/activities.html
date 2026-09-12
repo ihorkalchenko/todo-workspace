@@ -1,0 +1,69 @@
+<div class="mt-8 pt-8">
+  <h3 class="text-sm font-semibold text-gray-700 italic uppercase tracking-wider mb-4">
+    Activities
+  </h3>
+
+  @if (loading()) {
+    <div class="py-4 text-center text-gray-400 text-sm italic">
+      Loading activity history...
+    </div>
+  } @else if (activities().length === 0) {
+    <div class="py-4 text-gray-400 text-sm italic">
+      No history recorded for this task.
+    </div>
+  } @else {
+    <ul class="-mb-8">
+      @for (activity of activities(); track activity.id; let last = $last) {
+        <li>
+          <div class="relative pb-8">
+            @if (!last) {
+              <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            }
+
+            <div class="relative flex space-x-3">
+              <div>
+                <!-- Action Specific Icon / Avatar -->
+                <span class="h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center ring-8 ring-white text-indigo-600 font-bold text-xs">
+                  {{ (activity.user?.name?.[0] || 'U') }}
+                </span>
+              </div>
+              <div class="flex-1 min-w-0 pt-1.5 flex justify-between space-x-4">
+                <div>
+                  <p class="text-sm text-gray-600">
+                    <span class="font-semibold text-gray-900">
+                      {{ activity.user?.name || 'Someone' }}
+                    </span>
+
+                    {{ activity.action }}
+
+                    @if (activity.details) {
+                      <span class="font-medium text-gray-800">
+                        ({{ activity.details }})
+                      </span>
+                    }
+                  </p>
+                </div>
+                <div class="text-right text-xs whitespace-nowrap text-gray-400">
+                  {{ activity.createdAt | date: 'short' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (hasMore()) {
+    <div class="mt-12 text-center">
+      <button
+        type="button"
+        (click)="loadMore()"
+        [disabled]="loading()"
+        class="px-4 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 disabled:opacity-50 rounded-sm transition-colors cursor-pointer"
+      >
+        {{ loading() ? 'Loading...' : 'Show More' }}
+      </button>
+    </div>
+  }
+</div>
