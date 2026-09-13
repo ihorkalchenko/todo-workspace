@@ -28,7 +28,36 @@ export class CommentsController {
   constructor(private commentsService: CommentsService) {}
 
   /**
-   * TODO: implement load more chunks
+   * Retrieve paginated comments for a specific task.
+   *
+   * @param taskId - The ID of the task whose comments to retrieve
+   * @param page - The page number to retrieve (1-based indexing). Defaults to 1.
+   * @param limit - The max number of comments per page. Defaults to 5.
+   * @returns PaginatedComments object containing:
+   *  - data: array of Comment objects
+   *  - total: total number of comments for the task
+   *  - page: current page number
+   *  - limit: number of items per page
+   *  - hasMore: boolean indicating if more pages are available
+   *
+   * @example
+   * GET /tasks/123/comments?page=2&limit=10
+   * Response: {
+   *   "data": [
+   *     {
+   *       "id": 5,
+   *       "taskId": 123,
+   *       "userId": 42,
+   *       "content": "This is a comment",
+   *       "createdAt": "2024-01-15T10:30:00Z",
+   *       "user": { "name": "Alice" }
+   *     }
+   *   ],
+   *   "total": 25,
+   *   "page": 2,
+   *   "limit": 10,
+   *   "hasMore": true,
+   * }
    * */
   @Get()
   async getComments(
