@@ -32,7 +32,7 @@ export class CommentsController {
    *
    * @param taskId - The ID of the task whose comments to retrieve
    * @param page - The page number to retrieve (1-based indexing). Defaults to 1.
-   * @param limit - The max number of comments per page. Defaults to 5.
+   * @param limit - The maximum number of comments per page. Defaults to 5.
    * @returns PaginatedComments object containing:
    *  - data: array of Comment objects
    *  - total: total number of comments for the task
@@ -56,7 +56,7 @@ export class CommentsController {
    *   "total": 25,
    *   "page": 2,
    *   "limit": 10,
-   *   "hasMore": true,
+   *   "hasMore": true
    * }
    * */
   @Get()
