@@ -1,18 +1,18 @@
 import {
   Body,
-  Controller,
+  Controller, DefaultValuePipe,
   Delete,
   Get,
   NotFoundException,
   Param,
   ParseIntPipe,
-  Post,
+  Post, Query,
   Req,
   UseGuards
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-import { Comment } from '@todo-workspace/tasks';
+import { Comment, PaginatedComments } from '@todo-workspace/tasks';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
@@ -31,8 +31,12 @@ export class CommentsController {
    * TODO: implement load more chunks
    * */
   @Get()
-  async getComments(@Param('taskId', ParseIntPipe) taskId: number): Promise<Comment[]> {
-    return this.commentsService.getCommentsForTask(taskId);
+  async getComments(
+    @Param('taskId', ParseIntPipe) taskId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number,
+  ): Promise<PaginatedComments> {
+    return this.commentsService.getCommentsForTask(taskId, page, limit);
   }
 
   @Post()

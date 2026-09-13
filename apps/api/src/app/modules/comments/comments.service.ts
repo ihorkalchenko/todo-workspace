@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { DRIZZLE } from '../../db/db.module';
 import * as schema from '../../db/schemas'
-import { Comment } from '@todo-workspace/tasks';
+import { Comment, PaginatedComments } from '@todo-workspace/tasks';
 
 @Injectable()
 export class CommentsService {
@@ -72,10 +72,14 @@ export class CommentsService {
     });
   }
 
-  async getCommentsForTask(taskId: number): Promise<Comment[]> {
-    return this.db.query.comments.findMany({
+  async getCommentsForTask(taskId: number, page = 1, limit = 5): Promise<PaginatedComments> {
+    const offset = (page - 1) * limit;
+
+    const data = await this.db.query.comments.findMany({
       where: eq(schema.comments.taskId, taskId),
       orderBy: (c, { asc }) => [asc(c.createdAt)],
+      limit,
+      offset,
       with: {
         user: {
           columns: {
@@ -84,5 +88,21 @@ export class CommentsService {
         },
       },
     });
+
+    const [{ count }] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.comments)
+      .where(eq(schema.comments.taskId, taskId));
+
+    const total = Number(count ?? 0);
+    const hasMore = offset + data.length < total;
+
+    return {
+      data: data as Comment[],
+      total,
+      page,
+      limit,
+      hasMore,
+    };
   }
 }
