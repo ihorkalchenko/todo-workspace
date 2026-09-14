@@ -1,47 +1,71 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { CommentsDataService } from './comments-data.service';
-import { Comment } from '@todo-workspace/tasks';
+import { inject } from '@angular/core';
+import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { tap } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class CommentsService {
-  private readonly commentsDataService = inject(CommentsDataService);
+import { Comment } from '@todo-workspace/tasks';
+import { CommentsDataService } from './comments-data.service';
 
-  private readonly _comments = signal<Comment[]>([]);
-
-  readonly comments = this._comments.asReadonly();
-  readonly isLoading = signal(false);
-
-  loadComments(taskId: number) {
-    this.isLoading.set(true);
-    this.commentsDataService.getComments(taskId).subscribe({
-      next: (comments) => {
-        this._comments.set(comments);
-        this.isLoading.set(false);
-      },
-      error: () => this.isLoading.set(false),
-    });
-  }
-
-  addComment(taskId: number, content: string) {
-    return this.commentsDataService.createComment(taskId, content).pipe(
-      tap((newComment) => {
-        this._comments.update(curr => [...curr, newComment]);
-      }),
-    );
-  }
-
-  deleteComment(taskId: number, commentId: number) {
-    return this.commentsDataService.deleteComment(taskId, commentId).pipe(
-      tap(() => {
-        this._comments.update(curr => curr.filter((c) => c.id !== commentId));
-      }),
-    );
-  }
-
-  clearComments() {
-    this._comments.set([]);
-  }
+export interface CommentsState {
+  comments: Comment[];
+  isLoading: boolean;
+  page: number;
+  hasMore: boolean;
+  total: number;
 }
+
+const initialState: CommentsState = {
+  comments: [],
+  isLoading: false,
+  page: 1,
+  hasMore: false,
+  total: 0,
+};
+
+export const CommentsService = signalStore(
+  { providedIn: 'root' },
+  withState(initialState),
+  withMethods((store, dataService = inject(CommentsDataService)) => ({
+    loadComments(taskId: number, page = 1) {
+      patchState(store, { isLoading: true });
+
+      dataService.getComments(taskId, page, 5).subscribe({
+        next: (response) => {
+          patchState(store, {
+            comments: page === 1 ? response.data : [...store.comments(), ...response.data],
+            isLoading: false,
+            page: response.page,
+            hasMore: response.hasMore,
+            total: response.total,
+          });
+        },
+        error: () => patchState(store, { isLoading: false }),
+      });
+    },
+
+    addComment(taskId: number, content: string) {
+      return dataService.createComment(taskId, content).pipe(
+        tap((newComment) => {
+          patchState(store, {
+            comments: [...store.comments(), newComment],
+            total: store.total() + 1,
+          });
+        })
+      );
+    },
+
+    deleteComment(taskId: number, commentId: number) {
+      return dataService.deleteComment(taskId, commentId).pipe(
+        tap(() => {
+          patchState(store, {
+            comments: store.comments().filter((c) => c.id !== commentId),
+            total: Math.max(0, store.total() - 1),
+          });
+        })
+      );
+    },
+
+    clearComments() {
+      patchState(store, initialState);
+    },
+  }))
+);
