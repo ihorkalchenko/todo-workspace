@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Comment } from '@todo-workspace/tasks';
+import { HttpClient, HttpParams } from '@angular/common/http';
+
+import { Comment, PaginatedComments } from '@todo-workspace/tasks';
 
 @Injectable({
   providedIn: 'root',
@@ -9,8 +10,12 @@ export class CommentsDataService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/tasks';
 
-  getComments(taskId: number) {
-    return this.http.get<Comment[]>(`${this.apiUrl}/${taskId}/comments`);
+  getComments(taskId: number, page = 1, limit = 5) {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    return this.http.get<PaginatedComments>(`${this.apiUrl}/${taskId}/comments`, { params });
   }
 
   createComment(taskId: number, content: string) {

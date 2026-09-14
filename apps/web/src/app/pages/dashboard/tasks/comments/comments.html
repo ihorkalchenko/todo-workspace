@@ -3,12 +3,16 @@
     Comments
   </h3>
 
-  @if (isLoading()) {
+  @if (isLoading() && page() === 1) {
     <div class="py-4 text-center text-gray-400 text-sm italic">
       Loading comments...
     </div>
+  } @else if (comments().length === 0) {
+    <div class="py-4 text-gray-400 text-sm italic">
+      No comments on this task yet.
+    </div>
   } @else {
-    <div class="space-y-4 mb-6 max-h-72 overflow-y-auto pe-2">
+    <div class="space-y-4 mb-8">
       @for (comment of comments(); track comment.id) {
         <app-comment
           [task]="task()"
@@ -16,6 +20,19 @@
           [currentUser]="currentUser()"
         />
       }
+    </div>
+  }
+
+  @if (hasMore()) {
+    <div class="mb-6 text-center">
+      <button
+        type="button"
+        (click)="loadMore()"
+        [disabled]="isLoading()"
+        class="px-4 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 disabled:opacity-50 rounded-sm transition-colors cursor-pointer"
+      >
+        {{ isLoading() ? 'Loading...' : 'Show more' }}
+      </button>
     </div>
   }
 </div>

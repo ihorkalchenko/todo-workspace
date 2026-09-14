@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+
 import { Task } from '@todo-workspace/tasks';
 import { CommentComponent } from './comment/comment';
 import { CommentsService } from '../../../../core/comments/comments.service';
@@ -21,6 +22,8 @@ export class CommentsComponent {
 
   readonly comments = this.commentsService.comments;
   readonly isLoading = this.commentsService.isLoading;
+  readonly hasMore = this.commentsService.hasMore;
+  readonly page = this.commentsService.page;
   readonly currentUser = this.authService.user;
 
   constructor() {
@@ -28,11 +31,20 @@ export class CommentsComponent {
       const task = this.task();
 
       if (task) {
-        this.commentsService.loadComments(task.id);
+        this.commentsService.loadComments(task.id, 1);
       } else {
         this.commentsService.clearComments();
       }
     });
+  }
+
+  loadMore() {
+    const task = this.task();
+    const page = this.page();
+
+    if (task && this.hasMore() && !this.isLoading()) {
+      this.commentsService.loadComments(task.id, page + 1);
+    }
   }
 
   postComment() {
