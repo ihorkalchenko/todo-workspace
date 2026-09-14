@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
-import { ActivitiesService } from '../../../../core/activities/activities.service';
-import { Task } from '@todo-workspace/tasks';
 import { DatePipe } from '@angular/common';
+
+import { Task } from '@todo-workspace/tasks';
+import { ActivitiesService } from '../../../../core/activities/activities.service';
 
 @Component({
   selector: 'app-activities',
@@ -15,7 +16,7 @@ export class ActivitiesComponent {
 
   readonly task = input.required<Task | null | undefined>();
   readonly activities = this.activitiesService.activities;
-  readonly loading = this.activitiesService.isLoading;
+  readonly isLoading = this.activitiesService.isLoading;
   readonly hasMore = this.activitiesService.hasMore;
   readonly page = this.activitiesService.page;
 
@@ -35,9 +36,8 @@ export class ActivitiesComponent {
     const task = this.task();
     const page = this.page();
 
-    if (task && this.hasMore() && !this.loading()) {
-      const nextPage = page + 1;
-      this.activitiesService.loadActivities(task.id, nextPage);
+    if (task && this.hasMore() && !this.isLoading()) {
+      this.activitiesService.loadActivities(task.id, page + 1);
     }
   }
 }

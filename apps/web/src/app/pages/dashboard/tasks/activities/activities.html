@@ -3,7 +3,7 @@
     Activities
   </h3>
 
-  @if (loading()) {
+  @if (isLoading() && page() === 1) {
     <div class="py-4 text-center text-gray-400 text-sm italic">
       Loading activity history...
     </div>
@@ -59,10 +59,10 @@
       <button
         type="button"
         (click)="loadMore()"
-        [disabled]="loading()"
+        [disabled]="isLoading()"
         class="px-4 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 disabled:opacity-50 rounded-sm transition-colors cursor-pointer"
       >
-        {{ loading() ? 'Loading...' : 'Show More' }}
+        {{ isLoading() ? 'Loading...' : 'Show More' }}
       </button>
     </div>
   }
