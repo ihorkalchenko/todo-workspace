@@ -50,10 +50,7 @@ describe('CommentsService', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        CommentsService,
-        { provide: CommentsDataService, useValue: mockDataService },
-      ],
+      providers: [{ provide: CommentsDataService, useValue: mockDataService }],
     });
 
     service = TestBed.inject(CommentsService);
