@@ -21,6 +21,8 @@ This is the NestJS backend application of the Todo Workspace, managed within an 
   - `auth/`: Sign-up, sign-in, and log-out endpoints; JWT generation and extraction; Passport JWT strategies and guards.
   - `users/`: Profile retrieval, updating, and querying user records.
   - `tasks/`: CRUD operations on tasks.
+  - `activities/`: Paginated activity log retrieval for tasks.         
+  - `comments/`: Creation, deletion, and paginated retrieval of task comments with activity logging integration.
 
 # Building and Running
 Since this project is part of an Nx workspace, use the following commands:
