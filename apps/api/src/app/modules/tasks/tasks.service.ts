@@ -35,7 +35,7 @@ export class TasksService {
 
   async createTask(
     userId: number,
-    data: Pick<Task, 'title' | 'description' | 'userId'>
+    data: Pick<Task, 'title' | 'description' | 'priority' | 'userId'>
   ): Promise<Task> {
     return this.db.transaction(async (tx) => {
       const [result] = await tx
@@ -51,6 +51,7 @@ export class TasksService {
           title: data.title,
           description: data.description,
           status: 'To Do',
+          priority: data.priority ?? 'Medium',
           order: nextOrder,
           userId: data.userId,
         })
@@ -71,7 +72,7 @@ export class TasksService {
   async updateTask(
     userId: number,
     id: number,
-    data: Partial<Pick<Task, 'title' | 'description' | 'status' | 'userId'>>
+    data: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'userId'>>
   ): Promise<Task | undefined> {
     return this.db.transaction(async (tx) => {
       const [existedTask] = await tx
@@ -116,6 +117,10 @@ export class TasksService {
 
       if (data.status && data.status !== existedTask.status) {
         changes.push(`status to "${data.status}"`);
+      }
+
+      if (data.priority && data.priority !== existedTask.priority) {
+        changes.push(`priority to "${data.priority}"`);
       }
 
       if (changes.length > 0) {

@@ -36,6 +36,7 @@ describe('CommentComponent', () => {
     description: 'Testing task description',
     createdAt: new Date().toISOString(),
     status: 'To Do',
+    priority: 'Medium',
     userId: 1,
     order: 0,
   };

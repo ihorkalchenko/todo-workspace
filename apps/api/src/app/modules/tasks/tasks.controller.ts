@@ -37,19 +37,71 @@ export class TasksController {
     return task;
   }
 
+  /**
+   *  Create a new task
+   *
+   *  @param req - Request object containing authenticated user info
+   *  @param data - Task creation payload containing title, description, priority and userId
+   *  @returns The newly created Task object
+   *
+   *  @example
+   *  POST /tasks
+   *  Body: {
+   *    "title": "Fix login bug",
+   *    "description": "App crashes when entering invalid email",
+   *    "priority": "High",
+   *    "userId": 42
+   *  }
+   *  Response: {
+   *    "id": 1,
+   *    "title": "Fix login bug",
+   *    "description": "App crashes when entering invalid email",
+   *    "status": "To Do",
+   *    "priority": "High",
+   *    "order": 0,
+   *    "createdAt": "2026-09-14T16:00:00Z",
+   *    "userId": 42
+   *  }
+   * */
   @Post()
   async createTask(
     @Req() req: any,
-    @Body() data: Pick<Task, 'title' | 'description' | 'userId'>,
+    @Body() data: Pick<Task, 'title' | 'description' | 'priority' | 'userId'>,
   ): Promise<Task> {
     return await this.tasksService.createTask(req.user.id, data);
   }
 
+  /**
+   * Update an existing task
+   *
+   * @param id - The ID of the task to update
+   * @param req - Request object containing authenticated user info
+   * @param data - Partial task payload to update (title, description, status, priority, userId)
+   * @returns The updated Task object
+   * @throws NotFoundException if task with the given ID does not exist
+   *
+   * @example
+   * PATCH /tasks/1
+   * Body: {
+   *   "priority": "Highest",
+   *   "status": "Doing"
+   * }
+   * Response: {
+   *   "id": 1,
+   *   "title": "Fix login bug",
+   *   "description": "App crashes when entering invalid email",
+   *   "status": "Doing",
+   *   "priority": "Highest",
+   *   "order": 0,
+   *   "createdAt": "2026-09-14T16:00:00Z",
+   *   "userId": 42
+   * }
+   * */
   @Patch(':id')
   async updateTask(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: any,
-    @Body() data: Partial<Pick<Task, 'title' | 'description' | 'status' | 'userId'>>
+    @Body() data: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'userId'>>,
   ): Promise<Task> {
     const task = await this.tasksService.updateTask(req.user.id, id, data);
 

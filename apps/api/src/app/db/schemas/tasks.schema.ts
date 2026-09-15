@@ -5,12 +5,14 @@ import { comments } from './comments.schema';
 import { activities } from './activities.schema';
 
 export const statusEnum = pgEnum('status', ['To Do', 'Doing', 'Done', 'Archived']);
+export const priorityEnum = pgEnum('priority', ['Lowest', 'Low', 'Medium', 'High', 'Highest']);
 
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
   status: statusEnum('status').default('To Do').notNull(),
+  priority: priorityEnum('priority').default('Medium').notNull(),
   order: integer('order').default(0).notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
 
