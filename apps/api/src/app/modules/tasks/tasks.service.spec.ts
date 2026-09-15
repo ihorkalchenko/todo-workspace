@@ -197,7 +197,11 @@ describe('TasksService', () => {
 
       const result = await service.deleteTask(1);
 
+      expect(result).toBeUndefined();
       expect(mockDelete).toHaveBeenCalledWith(schema.tasks);
+      expect(mockUpdate).toHaveBeenCalledWith(schema.tasks);
+      expect(mockUpdateSet).toHaveBeenCalled();
+      expect(mockDB.transaction).toHaveBeenCalled();
     });
 
     it('should return false if task to delete is not found', async () => {
