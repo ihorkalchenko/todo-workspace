@@ -64,7 +64,7 @@ describe('TasksService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TasksService,
-        {provide: DRIZZLE, useValue: mockDB },
+        { provide: DRIZZLE, useValue: mockDB },
       ]
     }).compile();
 
@@ -80,7 +80,7 @@ describe('TasksService', () => {
   });
 
   describe('getTasks', () => {
-    it('should return a list of all tasks wuth user metadata', async () => {
+    it('should return a list of all tasks with user metadata', async () => {
       mockDB.query.tasks.findMany.mockResolvedValue(mockTasks);
 
       const result = await service.getTasks();
@@ -181,7 +181,7 @@ describe('TasksService', () => {
     it('should return undefined if task to update does not exist', async () => {
       mockWhere.mockResolvedValueOnce([]);
 
-      const result = await service.updateTask(mockUserId, 999, { title: 'Not existed' });
+      const result = await service.updateTask(mockUserId, 999, { title: 'Does not exist' });
 
       expect(result).toBeUndefined();
     });
