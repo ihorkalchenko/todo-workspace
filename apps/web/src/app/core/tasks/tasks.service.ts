@@ -1,116 +1,142 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { TasksDataService } from './tasks-data.service';
+import { inject } from '@angular/core';
+import { patchState, signalStore, withHooks, withMethods, withState } from '@ngrx/signals';
 
-import { Task, TaskStatus } from '@todo-workspace/tasks';
+import { TasksDataService } from './tasks-data.service';
+import { Task, TaskStatus, TaskPriority } from '@todo-workspace/tasks';
+
+export interface TaskState {
+  tasks: Task[];
+  isLoading: boolean;
+}
+
+const initialState: TaskState = {
+  tasks: [],
+  isLoading: false,
+};
+
+export const TasksService = signalStore(
+  { providedIn: 'root' },
+  withState(initialState),
+  withMethods((store, tasksDataService = inject(TasksDataService)) => ({
+
+    loadTasks() {
+      patchState(store, { isLoading: true });
+
+      tasksDataService
+        .getTasks()
+        .subscribe({
+          next: tasks => patchState(store, { tasks, isLoading: false }),
+          error: err => patchState(store, { isLoading: false }),
+        });
+    },
+
+    getTask(id: number) {
+      return tasksDataService.getTask(id);
+    },
+
+    createTask(data: Pick<Task, 'title' | 'description' | 'userId'> & { priority?: TaskPriority }) {
+      tasksDataService
+        .createTask(data)
+        .subscribe((newTask) => {
+          patchState(store, { tasks: [...store.tasks(), newTask] });
+        });
+    },
+
+    updateTask(id: number, data: Partial<Task>) {
+      patchState(store, { isLoading: true });
+
+      tasksDataService
+        .updateTask(id, data)
+        .subscribe({
+          next: (updatedTask) => {
+            patchState(store, {
+              tasks: store.tasks().map(t => (t.id === id ? updatedTask : t)),
+              isLoading: false,
+            });
+          },
+          error: () => patchState(store, { isLoading: false }),
+        });
+    },
+
+    deleteTask(id: number) {
+      tasksDataService
+        .deleteTask(id)
+        .subscribe(() => {
+          patchState(store, {
+            tasks: store.tasks().filter(t => t.id !== id),
+          });
+        });
+    },
+
+    moveTask(id: number, targetStatus: TaskStatus, targetOrder: number) {
+      const currentTasks = store.tasks();
+      const taskToMove = currentTasks.find(t => t.id === id);
+
+      if (!taskToMove) return;
+
+      const updatedTasks = calculateNewOrders(currentTasks, taskToMove, targetStatus, targetOrder);
+      patchState(store, { tasks: updatedTasks });
+
+      tasksDataService
+        .moveTask(id, targetStatus, targetOrder)
+        .subscribe({
+          error: () => tasksDataService.getTasks().subscribe(tasks => patchState(store, { tasks })),
+        });
+    },
+
+  })),
+  withHooks({
+    onInit(store) {
+      store.loadTasks();
+    },
+  }),
+);
 
 /**
- * TODO: Rewrite using store
- * */
-@Injectable({
-  providedIn: 'root'
-})
-export class TasksService {
-  private readonly tasksDataService = inject(TasksDataService);
+ * Helper to calculate updated orders for optimistic drag-and-drop moves.
+ */
+function calculateNewOrders(
+  currentTasks: Task[],
+  movedTask: Task,
+  targetStatus: TaskStatus,
+  targetOrder: number
+): Task[] {
+  const { id, status: sourceStatus } = movedTask;
 
-  private _tasks = signal<Task[]>([]);
-  readonly tasks = this._tasks.asReadonly();
+  const sourceList = getSortedTasksByStatus(currentTasks, sourceStatus, id);
+  const targetList = sourceStatus === targetStatus ? sourceList : getSortedTasksByStatus(currentTasks, targetStatus);
 
-  constructor() {
-    this.loadTasks();
-  }
+  const updatedTargetTask = { ...movedTask, status: targetStatus, order: targetOrder };
+  targetList.splice(targetOrder, 0, updatedTargetTask);
 
-  getTask(id: number) {
-    return this.tasksDataService.getTask(id);
-  }
+  sourceList.forEach((t, i) => (t.order = i));
+  targetList.forEach((t, i) => (t.order = i));
 
-  createTask(data: Pick<Task, 'title' | 'description'>) {
-    this.tasksDataService.createTask(data).subscribe(newTask => {
-      this._tasks.update(list => [...list, newTask]);
-    });
-  }
+  return currentTasks.map((t) => {
+    if (t.id === id) {
+      return updatedTargetTask;
+    }
 
-  updateTask(id: number, data: Partial<Task>) {
-    this.tasksDataService.updateTask(id, data).subscribe(updatedTask => {
-      this._tasks.update(list => list.map(task => task.id === id ? updatedTask : task));
-    });
-  }
+    const updatedSource = sourceList.find((s) => s.id === t.id);
+    if (updatedSource) {
+      return { ...t, order: updatedSource.order };
+    }
 
-  deleteTask(id: number) {
-    this.tasksDataService.deleteTask(id).subscribe(() => {
-      this._tasks.update(list => list.filter(task => task.id !== id));
-    });
-  }
+    const updatedTarget = targetList.find((s) => s.id === t.id);
+    if (updatedTarget) {
+      return { ...t, order: updatedTarget.order };
+    }
 
-  moveTask(id: number, targetStatus: TaskStatus, targetOrder: number) {
-    const currentTasks = this._tasks();
-    const taskToMove = currentTasks.find(t => t.id === id);
+    return t;
+  });
+}
 
-    if (!taskToMove) return;
-
-    const updatedTasks = this.calculateNewOrders(currentTasks, taskToMove, targetStatus, targetOrder);
-    this._tasks.set(updatedTasks);
-
-    this.tasksDataService.moveTask(id, targetStatus, targetOrder).subscribe({
-      error: (err) => {
-       console.error('Failed to update task order', err);
-       this.loadTasks();
-      }
-    });
-  }
-
-  /**
-   * Loads all tasks from the data service and updates the tasks signal.
-   */
-  private loadTasks(): void {
-    this.tasksDataService.getTasks().subscribe(tasks => this._tasks.set(tasks));
-  }
-
-  /**
-   * Helper to calculate the new list of tasks with updated order values immutably.
-   * */
-  private calculateNewOrders(currentTasks: Task[], movedTask: Task, targetStatus: TaskStatus, targetOrder: number) {
-    const { id, status: sourceStatus } = movedTask;
-
-    const sourceList = this.getSortedTasksByStatus(currentTasks, sourceStatus, id);
-    const targetList = sourceStatus === targetStatus
-      ? sourceList
-      : this.getSortedTasksByStatus(currentTasks, targetStatus);
-
-    const updatedTargetTask = { ...movedTask, status: targetStatus, order: targetOrder };
-    targetList.splice(targetOrder, 0, updatedTargetTask);
-
-    sourceList.forEach((t, i) => t.order = i);
-    targetList.forEach((t, i) => t.order = i);
-
-    return currentTasks.map(t => {
-      if (t.id === id) {
-        return updatedTargetTask;
-      }
-
-      const updatedSource = sourceList.find(s => s.id === t.id);
-
-      if (updatedSource) {
-        return { ...t, order: updatedSource.order };
-      }
-
-      const updatedTarget = targetList.find(s => s.id === t.id);
-
-      if (updatedTarget) {
-        return { ...t, order: updatedTarget.order };
-      }
-
-      return t;
-    });
-  }
-
-  /**
-   * Helper to get sorted tasks under a specific status, optionally excluding one ID.
-   *
-   * */
-  private getSortedTasksByStatus(tasks: Task[], status: TaskStatus, excludedId?: number) {
-    return tasks
-      .filter(t => t.status === status && t.id !== excludedId)
-      .sort((a, b) => a.order - b.order)
-      .map(t => ({ ...t }));
-  }
+/**
+ * Helper to filter and sort tasks by status column index.
+ */
+function getSortedTasksByStatus(tasks: Task[], status: TaskStatus, excludedId?: number): Task[] {
+  return tasks
+    .filter(t => t.status === status && t.id !== excludedId)
+    .sort((a, b) => a.order - b.order)
+    .map(t => ({ ...t }));
 }

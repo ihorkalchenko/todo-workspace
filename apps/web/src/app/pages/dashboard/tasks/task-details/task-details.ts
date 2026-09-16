@@ -1,16 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { TasksService } from '../../../../core/tasks/tasks.service';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, of } from 'rxjs';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import { User } from '@todo-workspace/users';
-import { TaskStatus } from '@todo-workspace/tasks';
-import { UsersService } from '../../../../core/users/users.service';
-import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
+import { TaskStatus, TaskPriority } from '@todo-workspace/tasks';
 import { CommentsComponent } from '../comments/comments';
 import { ActivitiesComponent } from '../activities/activities';
+import { PriorityBadgeComponent } from '../../../../shared/priority-badge/priority-badge';
+import { UsersService } from '../../../../core/users/users.service';
+import { TasksService } from '../../../../core/tasks/tasks.service';
+import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 
 @Component({
   selector: 'app-tasks-details',
@@ -22,14 +24,15 @@ import { ActivitiesComponent } from '../activities/activities';
     CommentsComponent,
     NgClass,
     ActivitiesComponent,
+    PriorityBadgeComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskDetailsPage {
-  private readonly tasksService = inject(TasksService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly usersService = inject(UsersService);
+  private readonly tasksService = inject(TasksService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
 
   readonly id = input.required<string>();
@@ -73,10 +76,12 @@ export class TaskDetailsPage {
     title: ['', [Validators.required, Validators.minLength(3)]],
     description: [''],
     status: ['To Do' as TaskStatus, Validators.required],
+    priority: ['Medium' as TaskPriority, Validators.required],
     userId: [null as number | null, Validators.required],
   });
 
   readonly statuses: TaskStatus[] = ['To Do', 'Doing', 'Done', 'Archived'];
+  readonly priorities: TaskPriority[] = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
 
   constructor() {
     effect(() => {
@@ -87,6 +92,7 @@ export class TaskDetailsPage {
           title: task.title,
           description: task.description,
           status: task.status,
+          priority: task.priority ?? 'Medium',
           userId: task.userId,
         });
 
@@ -96,6 +102,13 @@ export class TaskDetailsPage {
         }
       }
     });
+  }
+
+  getPriorityButtonClass(priority: TaskPriority): string {
+    const isSelected = this.form.controls.priority.value === priority;
+    return isSelected
+      ? 'border-indigo-600 bg-indigo-50/60 ring-1 ring-indigo-600 shadow-sm'
+      : 'border-gray-200 bg-white hover:bg-gray-50';
   }
 
   selectUser(user: User) {
@@ -133,6 +146,7 @@ export class TaskDetailsPage {
     const taskData = {
       title: rawValue.title!,
       description: rawValue.description!,
+      priority: rawValue.priority as TaskPriority,
       userId: rawValue.userId!,
     };
 

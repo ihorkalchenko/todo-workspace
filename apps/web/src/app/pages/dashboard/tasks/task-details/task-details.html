@@ -108,6 +108,28 @@
         </div>
       }
 
+      <!-- Priority -->
+      <div>
+        <label
+          for="priority"
+          class="block text-sm font-semibold text-gray-700 mb-1 italic uppercase tracking-wider"
+        >
+          Priority
+        </label>
+        <div class="grid grid-cols-5 gap-2">
+          @for (p of priorities; track p) {
+            <button
+              type="button"
+              (click)="form.patchValue({ priority: p }); form.markAsDirty()"
+              class="flex items-center justify-center p-2 border rounded-sm transition-all cursor-pointer"
+              [class]="getPriorityButtonClass(p)"
+            >
+              <app-priority-badge [priority]="p" [showLabel]="true" />
+            </button>
+          }
+        </div>
+      </div>
+
       <!-- Assigned to  -->
       <div class="relative">
         <label
