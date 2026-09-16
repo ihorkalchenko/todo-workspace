@@ -43,12 +43,18 @@ export const TasksService = signalStore(
     },
 
     updateTask(id: number, data: Partial<Task>) {
+      patchState(store, { isLoading: true });
+
       tasksDataService
         .updateTask(id, data)
-        .subscribe((updatedTask) => {
-          patchState(store, {
-            tasks: store.tasks().map(t => (t.id === id ? updatedTask : t)),
-          });
+        .subscribe({
+          next: (updatedTask) => {
+            patchState(store, {
+              tasks: store.tasks().map(t => (t.id === id ? updatedTask : t)),
+              isLoading: false,
+            });
+          },
+          error: () => patchState(store, { isLoading: false }),
         });
     },
 
