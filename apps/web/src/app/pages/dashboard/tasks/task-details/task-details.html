@@ -116,10 +116,18 @@
         >
           Priority
         </label>
-        <div class="grid grid-cols-5 gap-2">
+        <div
+          class="grid grid-cols-5 gap-2"
+          role="radiogroup"
+          aria-labelledby="priority-label"
+          aria-describedby="priority-help"
+        >
           @for (p of priorities; track p) {
             <button
               type="button"
+              role="radio"
+              [attr.aria-checked]="form.controls.priority.value === p"
+              [attr.aria-label]="'Set priority to ' + p"
               (click)="form.patchValue({ priority: p }); form.markAsDirty()"
               class="flex items-center justify-center p-2 border rounded-sm transition-all cursor-pointer"
               [class]="getPriorityButtonClass(p)"
@@ -128,6 +136,9 @@
             </button>
           }
         </div>
+        <p id="priority-help" class="mt-3 text-xs text-gray-500">
+          Use arrow keys to navigate. Select priority level for this task.
+        </p>
       </div>
 
       <!-- Assigned to  -->
