@@ -18,6 +18,7 @@ export const TasksService = signalStore(
   { providedIn: 'root' },
   withState(initialState),
   withMethods((store, tasksDataService = inject(TasksDataService)) => ({
+
     loadTasks() {
       patchState(store, { isLoading: true });
 
@@ -51,9 +52,6 @@ export const TasksService = signalStore(
         });
     },
 
-    /**
-     * Delete a task by ID from store state.
-     */
     deleteTask(id: number) {
       tasksDataService
         .deleteTask(id)
@@ -64,9 +62,6 @@ export const TasksService = signalStore(
         });
     },
 
-    /**
-     * Move task across status columns or reorder position with optimistic UI updates.
-     */
     moveTask(id: number, targetStatus: TaskStatus, targetOrder: number) {
       const currentTasks = store.tasks();
       const taskToMove = currentTasks.find(t => t.id === id);
@@ -82,6 +77,7 @@ export const TasksService = signalStore(
           error: () => tasksDataService.getTasks().subscribe(tasks => patchState(store, { tasks })),
         });
     },
+
   })),
   withHooks({
     onInit(store) {
