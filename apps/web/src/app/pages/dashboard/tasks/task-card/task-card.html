@@ -1,5 +1,8 @@
 <div class="flex items-start justify-between gap-2">
-  <h3 class="font-medium text-gray-900 text-sm mb-1 flex-1">{{ task().title }}</h3>
+  <div class="flex gap-2 flex-1 min-w-0">
+    <app-priority-badge [priority]="task().priority" [showLabel]="false" />
+    <h3 class="font-medium text-gray-900 text-sm mb-1 flex-1">{{ task().title }}</h3>
+  </div>
 
   <button
     type="button"

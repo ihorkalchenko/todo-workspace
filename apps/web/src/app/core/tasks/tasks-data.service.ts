@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Task, TaskStatus } from '@todo-workspace/tasks';
+import { Task, TaskStatus, TaskPriority } from '@todo-workspace/tasks';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +17,7 @@ export class TasksDataService {
     return this.http.get<Task>(`${this.apiUrl}/${id}`);
   }
 
-  createTask(data: Pick<Task, 'title' | 'description'>) {
+  createTask(data: Pick<Task, 'title' | 'description'> & { priority?: TaskPriority }) {
     return this.http.post<Task>(this.apiUrl, data);
   }
 

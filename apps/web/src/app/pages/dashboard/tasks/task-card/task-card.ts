@@ -3,10 +3,11 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { Task } from '@todo-workspace/tasks';
+import { PriorityBadgeComponent } from '../../../../shared/priority-badge/priority-badge';
 
 @Component({
   selector: 'app-task-card',
-  imports: [DatePipe],
+  imports: [DatePipe, PriorityBadgeComponent],
   templateUrl: './task-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
