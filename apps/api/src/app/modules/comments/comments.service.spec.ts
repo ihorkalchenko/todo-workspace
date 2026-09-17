@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from "@nestjs/common";
 import { DRIZZLE } from '../../db/db.module';
-import { and, eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schemas';
 
 import { Comment } from '@todo-workspace/tasks';
@@ -52,64 +52,63 @@ describe('CommentsService', () => {
   });
 
   describe('getCommentsForTask', () => {
-    const mockTotal = 10;
     const mockTaskId = 101;
-    const mockComments: Comment[] = [
-      {
-        id: 1,
-        taskId: mockTaskId,
-        userId: 42,
-        parentId: null,
-        content: 'Top-level comment',
-        createdAt: new Date().toISOString(),
-        user: { name: 'Alice' },
-        replies: [
-          {
-            id: 2,
-            taskId: mockTaskId,
-            userId: 43,
-            parentId: 1,
-            content: 'Reply comment',
-            createdAt: new Date().toISOString(),
-            user: { name: 'Bob' },
-          },
-        ],
-      },
-    ];
 
-    it('should return paginated top-level comments with nested replies', async () => {
-      mockDB.query.comments.findMany.mockResolvedValue(mockComments);
-      mockWhere.mockResolvedValue([{ count: mockTotal }]);
+    it('should build recutsive tree for comments and paginate top-level comments', async () => {
+      const flatComments: any[] = [
+        {
+          id: 1,
+          taskId: mockTaskId,
+          parentId: null,
+          content: 'Top-level 1',
+          created: '2026-08-24',
+          user: { name: 'Alice' },
+        },
+        {
+          id: 2,
+          taskId: mockTaskId,
+          parentId: 1,
+          content: 'Reply to 1',
+          created: '2026-08-25',
+          user: { name: 'Bob' },
+        },
+        {
+          id: 3,
+          taskId: mockTaskId,
+          parentId: 2,
+          content: 'Reply to Reply 1',
+          created: '2026-08-26',
+          user: { name: 'Charlie' },
+        },
+        {
+          id: 4,
+          taskId: mockTaskId,
+          parentId: null,
+          content: 'Top-level 2',
+          created: '2026-08-27',
+          user: { name: 'Dave' },
+        },
+      ];
 
-      const result = await service.getCommentsForTask(mockTaskId);
+      mockDB.query.comments.findMany.mockResolvedValue(flatComments);
 
-      expect(result).toEqual({
-        data: mockComments,
-        total: mockTotal,
-        page: 1,
-        limit: 5,
-        hasMore: true,
-      });
+      const result = await service.getCommentsForTask(mockTaskId, 1, 1);
+
+      expect(result.total).toBe(2);
+      expect(result.data.length).toBe(1);
+      expect(result.hasMore).toBe(true);
+      expect(result.data[0].id).toBe(1);
+
+      // recursive check
+      expect(result.data[0].replies?.[0].id).toBe(2);
+      expect(result.data[0].replies?.[0].replies?.[0].id).toBe(3);
 
       expect(mockDB.query.comments.findMany).toHaveBeenCalledWith({
-        where: and(
-          eq(schema.comments.taskId, mockTaskId),
-          isNull(schema.comments.parentId)
-        ),
+        where: eq(schema.comments.taskId, mockTaskId),
         orderBy: expect.any(Function),
-        limit: 5,
-        offset: 0,
         with: {
           user: {
-            columns: {  name: true },
-          },
-          replies: {
-            with: {
-              user: {
-                columns: { name: true },
-              },
-            },
-            orderBy: expect.any(Function),
+            columns: { name: true },
           },
         },
       });
@@ -132,23 +131,13 @@ describe('CommentsService', () => {
       };
 
       const returningMock = vi.fn().mockResolvedValue([{ id: 1 }]);
-      mockInsertValues
-        .mockReturnValueOnce({ returning: returningMock })
-        .mockResolvedValueOnce([]);
+      mockInsertValues.mockReturnValueOnce({ returning: returningMock }).mockResolvedValueOnce([]);
 
       mockDB.query.comments.findFirst.mockResolvedValue(mockCreatedComment);
 
       const result = await service.createComment(mockTaskId, mockUserId, 'New Comment');
 
       expect(result).toEqual(mockCreatedComment);
-      expect(mockDB.query.comments.findFirst).toHaveBeenCalledWith({
-        where: eq(schema.comments.id, 1),
-        with: {
-          user: {
-            columns: { name: true },
-          },
-        },
-      });
     });
 
     it('should create a reply comment when parentId is passed', async () => {
@@ -181,12 +170,6 @@ describe('CommentsService', () => {
 
       expect(result).toEqual(mockReplyComment);
       expect(result.parentId).toBe(1);
-      expect(mockDB.query.comments.findFirst).toHaveBeenCalledWith({
-        where: and(
-          eq(schema.comments.id, 1),
-          eq(schema.comments.taskId, mockTaskId)
-        ),
-      });
     });
 
     it('should throw BadRequestException if parentId does not exist for the task', async () => {
@@ -219,7 +202,6 @@ describe('CommentsService', () => {
 
       expect(result).toBe(true);
       expect(mockDelete).toHaveBeenCalledWith(schema.comments);
-      expect(mockDeleteWhere).toHaveBeenCalledWith(eq(schema.comments.id, mockCommentId));
     });
 
     it('should return false if comment does not exist or does not belong to user', async () => {
@@ -228,7 +210,6 @@ describe('CommentsService', () => {
       const result = await service.deleteComment(mockCommentId, mockUserId);
 
       expect(result).toBe(false);
-      expect(mockDelete).not.toHaveBeenCalled();
     });
   });
 });

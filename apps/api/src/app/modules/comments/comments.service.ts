@@ -89,50 +89,48 @@ export class CommentsService {
   }
 
   async getCommentsForTask(taskId: number, page = 1, limit = 5): Promise<PaginatedComments> {
-    const offset = (page - 1) * limit;
-
-    const data = await this.db.query.comments.findMany({
-      where: and(
-        eq(schema.comments.taskId, taskId),
-        isNull(schema.comments.parentId)
-      ),
+    const allComments = await this.db.query.comments.findMany({
+      where: eq(schema.comments.taskId, taskId),
       orderBy: (c, { asc }) => [asc(c.createdAt)],
-      limit,
-      offset,
       with: {
         user: {
           columns: {
             name: true,
           },
         },
-        replies: {
-          with: {
-            user: {
-              columns: {
-                name: true,
-              },
-            },
-          },
-          orderBy: (c, { asc }) => [asc(c.createdAt)],
-        }
       },
     });
 
-    const [{ count }] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.comments)
-      .where(
-        and(
-          eq(schema.comments.taskId, taskId),
-          isNull(schema.comments.parentId)
-        ),
-      );
+    const commentMap = new Map<number, Comment & { replies: Comment[] }>();
+    const topLevelComments: Comment[] = [];
 
-    const total = Number(count ?? 0);
-    const hasMore = offset + data.length < total;
+    for (const c of allComments) {
+      commentMap.set(c.id, { ...(c as Comment), replies: [] });
+    }
+
+    for (const c of allComments) {
+      const node = commentMap.get(c.id)!;
+
+      if (c.parentId) {
+        const parentNode = commentMap.get(c.parentId);
+
+        if (parentNode) {
+          parentNode.replies.push(node);
+        } else {
+          topLevelComments.push(node as Comment);
+        }
+      } else {
+        topLevelComments.push(node as Comment);
+      }
+    }
+
+    const total = topLevelComments.length;
+    const offset = (page - 1) * limit;
+    const paginatedTopLevel = topLevelComments.slice(offset, offset + limit);
+    const hasMore = offset + paginatedTopLevel.length < total;
 
     return {
-      data: data as Comment[],
+      data: paginatedTopLevel,
       total,
       page,
       limit,
