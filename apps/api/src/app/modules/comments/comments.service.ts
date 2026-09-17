@@ -1,5 +1,5 @@
-import {BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { DRIZZLE } from '../../db/db.module';
@@ -89,20 +89,60 @@ export class CommentsService {
   }
 
   async getCommentsForTask(taskId: number, page = 1, limit = 5): Promise<PaginatedComments> {
+    const offset = (page - 1) * limit;
+
+    const [{ count }] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.comments)
+      .where(
+        and(
+          eq(schema.comments.taskId, taskId),
+          isNull(schema.comments.parentId),
+        )
+      );
+
+    const total = Number(count ?? 0);
+
+    if (total === 0) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        limit,
+        hasMore: false,
+      };
+    }
+
+    const paginatedTopComments = await this.db.query.comments.findMany({
+      where: and(
+        eq(schema.comments.taskId, taskId),
+        isNull(schema.comments.parentId),
+      ),
+      orderBy: (c, { asc }) => [asc(c.createdAt)],
+      limit,
+      offset,
+      columns: { id: true },
+    });
+
+    if (paginatedTopComments.length === 0) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        limit,
+        hasMore: false,
+      };
+    }
+
     const allComments = await this.db.query.comments.findMany({
       where: eq(schema.comments.taskId, taskId),
       orderBy: (c, { asc }) => [asc(c.createdAt)],
       with: {
-        user: {
-          columns: {
-            name: true,
-          },
-        },
+        user: { columns: { name: true } },
       },
     });
 
     const commentMap = new Map<number, Comment & { replies: Comment[] }>();
-    const topLevelComments: Comment[] = [];
 
     for (const c of allComments) {
       commentMap.set(c.id, { ...(c as Comment), replies: [] });
@@ -116,21 +156,18 @@ export class CommentsService {
 
         if (parentNode) {
           parentNode.replies.push(node);
-        } else {
-          topLevelComments.push(node as Comment);
         }
-      } else {
-        topLevelComments.push(node as Comment);
       }
     }
 
-    const total = topLevelComments.length;
-    const offset = (page - 1) * limit;
-    const paginatedTopLevel = topLevelComments.slice(offset, offset + limit);
-    const hasMore = offset + paginatedTopLevel.length < total;
+    const paginatedTree = paginatedTopComments
+      .map(c => commentMap.get(c.id)!)
+      .filter(c => c !== undefined);
+
+    const hasMore = offset + paginatedTree.length < total;
 
     return {
-      data: paginatedTopLevel,
+      data: paginatedTree,
       total,
       page,
       limit,

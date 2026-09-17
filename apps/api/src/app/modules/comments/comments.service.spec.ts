@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from "@nestjs/common";
 import { DRIZZLE } from '../../db/db.module';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import * as schema from '../../db/schemas';
 
 import { Comment } from '@todo-workspace/tasks';
@@ -54,7 +54,9 @@ describe('CommentsService', () => {
   describe('getCommentsForTask', () => {
     const mockTaskId = 101;
 
-    it('should build recutsive tree for comments and paginate top-level comments', async () => {
+    it('should build recursive tree for comments and paginate top-level comments', async () => {
+      const mockTotal = 2;
+      const paginatedTopComments = [{ id: 1 }];
       const flatComments: any[] = [
         {
           id: 1,
@@ -90,7 +92,11 @@ describe('CommentsService', () => {
         },
       ];
 
-      mockDB.query.comments.findMany.mockResolvedValue(flatComments);
+      mockWhere.mockResolvedValue([{ count: mockTotal }]);
+
+      mockDB.query.comments.findMany
+        .mockResolvedValueOnce(paginatedTopComments)
+        .mockResolvedValueOnce(flatComments);
 
       const result = await service.getCommentsForTask(mockTaskId, 1, 1);
 
@@ -99,11 +105,21 @@ describe('CommentsService', () => {
       expect(result.hasMore).toBe(true);
       expect(result.data[0].id).toBe(1);
 
-      // recursive check
       expect(result.data[0].replies?.[0].id).toBe(2);
       expect(result.data[0].replies?.[0].replies?.[0].id).toBe(3);
 
-      expect(mockDB.query.comments.findMany).toHaveBeenCalledWith({
+      expect(mockDB.query.comments.findMany).toHaveBeenNthCalledWith(1, {
+        where: and(
+          eq(schema.comments.taskId, mockTaskId),
+          isNull(schema.comments.parentId)
+        ),
+        orderBy: expect.any(Function),
+        limit: 1,
+        offset: 0,
+        columns: { id: true },
+      });
+
+      expect(mockDB.query.comments.findMany).toHaveBeenNthCalledWith(2, {
         where: eq(schema.comments.taskId, mockTaskId),
         orderBy: expect.any(Function),
         with: {
@@ -111,6 +127,20 @@ describe('CommentsService', () => {
             columns: { name: true },
           },
         },
+      });
+    });
+
+    it('should return empty result if no top-level comments exist', async () => {
+      mockWhere.mockResolvedValue([{ count: 0 }]);
+
+      const result = await service.getCommentsForTask(mockTaskId, 1, 5);
+
+      expect(result).toEqual({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 5,
+        hasMore: false,
       });
     });
   });
@@ -164,8 +194,6 @@ describe('CommentsService', () => {
         .mockReturnValueOnce({ returning: returningMock })
         .mockResolvedValueOnce([]);
 
-      mockDB.query.comments.findFirst.mockResolvedValue(mockReplyComment);
-
       const result = await service.createComment(mockTaskId, mockUserId, 'Nested reply', 1);
 
       expect(result).toEqual(mockReplyComment);
@@ -174,7 +202,6 @@ describe('CommentsService', () => {
 
     it('should throw BadRequestException if parentId does not exist for the task', async () => {
       mockDB.query.comments.findFirst.mockResolvedValueOnce(null);
-
 
       await expect(
       service.createComment(mockTaskId, mockUserId, 'Invalid reply', 999)
