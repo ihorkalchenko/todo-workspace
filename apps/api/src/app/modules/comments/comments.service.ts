@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { DRIZZLE } from '../../db/db.module';
@@ -10,14 +10,30 @@ import { Comment, PaginatedComments } from '@todo-workspace/tasks';
 export class CommentsService {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof schema>) {}
 
-  async createComment(taskId: number, userId: number, content: string): Promise<Comment> {
+  async createComment(taskId: number, userId: number, content: string, parentId?: number): Promise<Comment> {
     return this.db.transaction(async (tx) => {
+      if (parentId) {
+        const parentComment = await tx.query.comments.findFirst({
+          where: and(
+            eq(schema.comments.id, parentId),
+            eq(schema.comments.taskId, taskId)
+          ),
+        });
+
+        if (!parentComment) {
+          throw new BadRequestException(
+            `Parent comment with ID ${parentId} does not exist for task ${taskId}`
+          );
+        }
+      }
+
       const [newComment] = await tx
         .insert(schema.comments)
         .values({
           taskId,
           userId,
           content,
+          parentId: parentId ?? null,
         })
         .returning();
 
@@ -26,7 +42,7 @@ export class CommentsService {
         .values({
           taskId,
           userId,
-          action: 'commented',
+          action: parentId ? 'replied to a comment' : 'commented',
         });
 
       return tx.query.comments.findFirst({
@@ -72,33 +88,93 @@ export class CommentsService {
     });
   }
 
+  /**
+   * TODO: Optimize comment retrieval for large threads.
+   * Currently, all comments for the task are loaded and the nested tree is built
+   * in memory before top-level pagination is applied. Consider paginating
+   * top-level comments in the database and loading replies only for visible
+   * comment threads to reduce database load and memory usage.
+   * */
   async getCommentsForTask(taskId: number, page = 1, limit = 5): Promise<PaginatedComments> {
     const offset = (page - 1) * limit;
-
-    const data = await this.db.query.comments.findMany({
-      where: eq(schema.comments.taskId, taskId),
-      orderBy: (c, { asc }) => [asc(c.createdAt)],
-      limit,
-      offset,
-      with: {
-        user: {
-          columns: {
-            name: true,
-          },
-        },
-      },
-    });
 
     const [{ count }] = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(schema.comments)
-      .where(eq(schema.comments.taskId, taskId));
+      .where(
+        and(
+          eq(schema.comments.taskId, taskId),
+          isNull(schema.comments.parentId),
+        ),
+      );
 
     const total = Number(count ?? 0);
-    const hasMore = offset + data.length < total;
+
+    if (total === 0) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        limit,
+        hasMore: false,
+      };
+    }
+
+    const paginatedTopComments = await this.db.query.comments.findMany({
+      where: and(
+        eq(schema.comments.taskId, taskId),
+        isNull(schema.comments.parentId),
+      ),
+      orderBy: (c, { asc }) => [asc(c.createdAt)],
+      limit,
+      offset,
+      columns: { id: true },
+    });
+
+    if (paginatedTopComments.length === 0) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        limit,
+        hasMore: false,
+      };
+    }
+
+    const allComments = await this.db.query.comments.findMany({
+      where: eq(schema.comments.taskId, taskId),
+      orderBy: (c, { asc }) => [asc(c.createdAt)],
+      with: {
+        user: { columns: { name: true } },
+      },
+    });
+
+    const commentMap = new Map<number, Comment & { replies: Comment[] }>();
+
+    for (const c of allComments) {
+      commentMap.set(c.id, { ...(c as Comment), replies: [] });
+    }
+
+    for (const c of allComments) {
+      const node = commentMap.get(c.id)!;
+
+      if (c.parentId) {
+        const parentNode = commentMap.get(c.parentId);
+
+        if (parentNode) {
+          parentNode.replies.push(node);
+        }
+      }
+    }
+
+    const paginatedTree = paginatedTopComments
+      .map((c) => commentMap.get(c.id)!)
+      .filter((c) => c !== undefined);
+
+    const hasMore = offset + paginatedTree.length < total;
 
     return {
-      data: data as Comment[],
+      data: paginatedTree,
       total,
       page,
       limit,

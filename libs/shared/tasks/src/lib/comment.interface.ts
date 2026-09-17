@@ -2,11 +2,13 @@ export interface Comment {
   readonly id: number;
   readonly taskId: number;
   readonly userId: number;
+  readonly parentId?: number | null;
   readonly content: string;
   readonly createdAt: string;
   readonly user?: {
     readonly name: string;
   };
+  readonly replies?: Comment[];
 }
 
 export interface PaginatedComments {

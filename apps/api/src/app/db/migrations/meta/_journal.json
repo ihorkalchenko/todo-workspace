@@ -43,6 +43,13 @@
       "when": 1789393816132,
       "tag": "0005_sleepy_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789561300825,
+      "tag": "0006_abnormal_demogoblin",
+      "breakpoints": true
     }
   ]
 }
