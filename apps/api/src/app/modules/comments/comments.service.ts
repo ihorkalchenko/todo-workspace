@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
@@ -12,6 +12,21 @@ export class CommentsService {
 
   async createComment(taskId: number, userId: number, content: string, parentId?: number): Promise<Comment> {
     return this.db.transaction(async (tx) => {
+      if (parentId) {
+        const parentComment = await tx.query.comments.findFirst({
+          where: and(
+            eq(schema.comments.id, parentId),
+            eq(schema.comments.taskId, taskId)
+          ),
+        });
+
+        if (!parentComment) {
+          throw new BadRequestException(
+            `Parent comment with ID ${parentId} does not exist for task ${taskId}`
+          );
+        }
+      }
+
       const [newComment] = await tx
         .insert(schema.comments)
         .values({

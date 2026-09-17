@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from "@nestjs/common";
 import { DRIZZLE } from '../../db/db.module';
 import { and, eq, isNull } from 'drizzle-orm';
 import * as schema from '../../db/schemas';
@@ -151,6 +152,10 @@ describe('CommentsService', () => {
     });
 
     it('should create a reply comment when parentId is passed', async () => {
+      const mockParentComment = {
+        id: 1,
+        taskId: mockTaskId,
+      };
       const mockReplyComment: Comment = {
         id: 2,
         taskId: mockTaskId,
@@ -160,6 +165,10 @@ describe('CommentsService', () => {
         createdAt: new Date().toISOString(),
         user: { name: 'Alice' },
       };
+
+      mockDB.query.comments.findFirst
+        .mockResolvedValueOnce(mockParentComment)
+        .mockResolvedValueOnce(mockReplyComment);
 
       const returningMock = vi.fn().mockResolvedValue([{ id: 2 }]);
       mockInsertValues
@@ -172,6 +181,21 @@ describe('CommentsService', () => {
 
       expect(result).toEqual(mockReplyComment);
       expect(result.parentId).toBe(1);
+      expect(mockDB.query.comments.findFirst).toHaveBeenCalledWith({
+        where: and(
+          eq(schema.comments.id, 1),
+          eq(schema.comments.taskId, mockTaskId)
+        ),
+      });
+    });
+
+    it('should throw BadRequestException if parentId does not exist for the task', async () => {
+      mockDB.query.comments.findFirst.mockResolvedValueOnce(null);
+
+
+      await expect(
+      service.createComment(mockTaskId, mockUserId, 'Invalid reply', 999)
+    ).rejects.toThrow(BadRequestException);
     });
   });
 
