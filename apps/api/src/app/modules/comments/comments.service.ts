@@ -88,6 +88,13 @@ export class CommentsService {
     });
   }
 
+  /**
+   * TODO: Optimize comment retrieval for large threads.
+   * Currently, all comments for the task are loaded and the nested tree is built
+   * in memory before top-level pagination is applied. Consider paginating
+   * top-level comments in the database and loading replies only for visible
+   * comment threads to reduce database load and memory usage.
+   * */
   async getCommentsForTask(taskId: number, page = 1, limit = 5): Promise<PaginatedComments> {
     const offset = (page - 1) * limit;
 
@@ -98,7 +105,7 @@ export class CommentsService {
         and(
           eq(schema.comments.taskId, taskId),
           isNull(schema.comments.parentId),
-        )
+        ),
       );
 
     const total = Number(count ?? 0);
@@ -161,8 +168,8 @@ export class CommentsService {
     }
 
     const paginatedTree = paginatedTopComments
-      .map(c => commentMap.get(c.id)!)
-      .filter(c => c !== undefined);
+      .map((c) => commentMap.get(c.id)!)
+      .filter((c) => c !== undefined);
 
     const hasMore = offset + paginatedTree.length < total;
 
