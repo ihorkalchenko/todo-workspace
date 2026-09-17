@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class CreateCommentDto {
   @IsString()
@@ -7,6 +14,7 @@ export class CreateCommentDto {
   content: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
+  @Min(1)
   parentId?: number;
 }
