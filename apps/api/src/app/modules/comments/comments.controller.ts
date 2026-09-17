@@ -17,9 +17,7 @@ import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
 /**
- * TODO: there are the next things that should be done:
- * 1. add edit/update endpoint,
- * 2. add reply endpoint
+ * TODO: add update endpoint
  *
  * */
 @Controller('tasks/:taskId/comments')
@@ -68,13 +66,51 @@ export class CommentsController {
     return this.commentsService.getCommentsForTask(taskId, page, limit);
   }
 
+  /**
+   * Create a new comment or reply for a specific task.
+   *
+   * @param taskId - The ID of the task to comment on
+   * @param req - The HTTP request object containing the authenticated user context (`req.user.id`)
+   * @param dto - CreateCommentDto
+   * @returns Newly created Comment object containing:
+   * - id: number
+   * - taskId: number
+   * - userId: number
+   * - parentId: number | null
+   * - content: string
+   * - createdAt: string ISO timestamp
+   * - user: object containing `{ name: string }`
+   *
+   * @throws NotFoundException if the target task with specified ID is not found
+   *
+   * @example
+   * POST /tasks/123/comments
+   * Body: {
+   *   "content": "Great suggestion!",
+   *   "parentId": 5
+   * }
+   * Response: {
+   *   "id": 12,
+   *   "taskId": 123,
+   *   "userId": 42,
+   *   "parentId": 5,
+   *   "content": "Great suggestion!",
+   *   "createdAt": "2026-09-17T11:00:00Z",
+   *   "user": { "name": "Bob" }
+   * }
+   * */
   @Post()
   async create(
     @Param('taskId', ParseIntPipe) taskId: number,
     @Req() req: any,
     @Body() dto: CreateCommentDto,
   ): Promise<Comment> {
-    const comment = await this.commentsService.createComment(taskId, req.user.id, dto.content);
+    const comment = await this.commentsService.createComment(
+      taskId,
+      req.user.id,
+      dto.content,
+      dto.parentId
+    );
 
     if (!comment) {
       throw new NotFoundException(`Task with ID ${taskId} not found`);
@@ -83,6 +119,22 @@ export class CommentsController {
     return comment;
   }
 
+  /**
+   * Delete a comment by its ID.
+   *
+   * @param id - The ID of the comment to delete
+   * @param req - The HTTP request object containing the authenticated user context (`req.user.id`)
+   * @returns Object containing:
+   * - success: bookean indicating whether the comment was deleted
+   *
+   * @throws NotFoundException if a comment whith the specified ID is not found or does not belong to the authenticated user
+   *
+   * @example
+   * DELETE /tasks/123/comments/5
+   * Response: {
+   *   "success": true
+   * }
+   * */
   @Delete(':id')
   async delete(
     @Param('id', ParseIntPipe) id: number,

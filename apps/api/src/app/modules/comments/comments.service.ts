@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { DRIZZLE } from '../../db/db.module';
@@ -10,7 +10,7 @@ import { Comment, PaginatedComments } from '@todo-workspace/tasks';
 export class CommentsService {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof schema>) {}
 
-  async createComment(taskId: number, userId: number, content: string): Promise<Comment> {
+  async createComment(taskId: number, userId: number, content: string, parentId?: number): Promise<Comment> {
     return this.db.transaction(async (tx) => {
       const [newComment] = await tx
         .insert(schema.comments)
@@ -18,6 +18,7 @@ export class CommentsService {
           taskId,
           userId,
           content,
+          parentId: parentId ?? null,
         })
         .returning();
 
@@ -26,7 +27,7 @@ export class CommentsService {
         .values({
           taskId,
           userId,
-          action: 'commented',
+          action: parentId ? 'replied to a comment' : 'commented',
         });
 
       return tx.query.comments.findFirst({
@@ -76,7 +77,10 @@ export class CommentsService {
     const offset = (page - 1) * limit;
 
     const data = await this.db.query.comments.findMany({
-      where: eq(schema.comments.taskId, taskId),
+      where: and(
+        eq(schema.comments.taskId, taskId),
+        isNull(schema.comments.parentId)
+      ),
       orderBy: (c, { asc }) => [asc(c.createdAt)],
       limit,
       offset,
@@ -86,13 +90,28 @@ export class CommentsService {
             name: true,
           },
         },
+        replies: {
+          with: {
+            user: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+          orderBy: (c, { asc }) => [asc(c.createdAt)],
+        }
       },
     });
 
     const [{ count }] = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(schema.comments)
-      .where(eq(schema.comments.taskId, taskId));
+      .where(
+        and(
+          eq(schema.comments.taskId, taskId),
+          isNull(schema.comments.parentId)
+        ),
+      );
 
     const total = Number(count ?? 0);
     const hasMore = offset + data.length < total;
