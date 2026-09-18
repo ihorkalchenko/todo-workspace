@@ -42,13 +42,19 @@ export const CommentsService = signalStore(
       });
     },
 
-    addComment(taskId: number, content: string) {
-      return dataService.createComment(taskId, content).pipe(
+    addComment(taskId: number, content: string, parentId?: number) {
+      return dataService.createComment(taskId, content, parentId).pipe(
         tap((newComment) => {
-          patchState(store, {
-            comments: [...store.comments(), newComment],
-            total: store.total() + 1,
-          });
+          if (!parentId) {
+            patchState(store, {
+              comments: [...store.comments(), newComment],
+              total: store.total() + 1,
+            });
+          } else {
+            patchState(store, {
+              comments: insertReplyInTree(store.comments(), newComment, parentId),
+            });
+          }
         })
       );
     },
@@ -57,7 +63,7 @@ export const CommentsService = signalStore(
       return dataService.deleteComment(taskId, commentId).pipe(
         tap(() => {
           patchState(store, {
-            comments: store.comments().filter((c) => c.id !== commentId),
+            comments: removeCommentFromTree(store.comments(), commentId),
             total: Math.max(0, store.total() - 1),
           });
         })
@@ -69,3 +75,44 @@ export const CommentsService = signalStore(
     },
   }))
 );
+
+/**
+ * Recursively inserts a new reply commment under its matching parent comment within a tree of nested comments.
+ *
+ * @param comments - Array of top-level/nested comments
+ * @param newComment - The newly created reply comment to insert
+ * @param parentId - The unique ID of the parent comment being replied to
+ * @returns A new array of comments with the new reply appended to the matching parent's array
+ * */
+function insertReplyInTree(comments: Comment[], newComment: Comment, parentId?: number): Comment[] {
+  return comments.map((c) => {
+    if (c.id === parentId) {
+      return { ...c, replies: [...(c.replies || []), newComment] }
+    }
+
+    if (c.replies && c.replies.length > 0) {
+      return { ...c, replies: insertReplyInTree(c.replies, newComment, parentId) };
+    }
+
+    return c;
+  });
+}
+
+/**
+ * Recursively removes a comment by its ID from a tree of nested comments.
+ *
+ * @param comments - Array of top-level or nested Comments
+ * @param commentId - The unique ID of the comment to remove
+ * @returns A new array of comments with the specified comment removed from top-level or child replies
+ * */
+function removeCommentFromTree(comments: Comment[], commentId: number): Comment[] {
+  return comments
+    .filter(c => c.id !== commentId)
+    .map(c => {
+      if (c.replies && c.replies.length > 0) {
+        return { ...c, replies: removeCommentFromTree(c.replies, commentId) };
+      }
+
+      return c;
+    });
+}

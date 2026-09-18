@@ -33,5 +33,6 @@ Since this project is part of an Nx workspace, use the following commands:
 - **Routing:** All feature modules should be lazy-loaded in `app.routes.ts`.
 - **Quotes:** Use single quotes for all imports in components, directives, and other files. Avoid double quotes.
 - **Services:** Logic should reside in services (like `TasksService`) within the `core` directory.
+- **Unit Testing & Spec Files:** Whenever creating or modifying Angular services, data services, or components (e.g., `comments.service.ts`, `comment.ts`), you **MUST** create or update their corresponding `.spec.ts` unit test files to ensure state mutations, signals, and mock responses match the implementation. Run `nx test web` to verify changes.
 - **Observables:** Always use the `takeUntilDestroyed()` operator from `@angular/core/rxjs-interop` when manually subscribing to Observables (e.g., `valueChanges`) within a component, directive, or service. This ensures subscriptions are automatically cleaned up when the context is destroyed.
 - **Naming:** Follow the project's specific naming convention where component files are named directly after the feature (e.g., `dashboard.ts` and `dashboard.html`) rather than the standard `.component.ts` suffix.

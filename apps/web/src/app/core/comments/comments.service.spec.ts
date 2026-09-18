@@ -15,7 +15,6 @@ describe('CommentsService', () => {
   };
 
   const mockTaskId = 42;
-
   const mockComment1: Comment = {
     id: 1,
     taskId: mockTaskId,
@@ -23,8 +22,8 @@ describe('CommentsService', () => {
     content: 'First comment',
     createdAt: '2026-09-14T10:00:00Z',
     user: { name: 'Alice' },
+    replies: [],
   };
-
   const mockComment2: Comment = {
     id: 2,
     taskId: mockTaskId,
@@ -32,8 +31,8 @@ describe('CommentsService', () => {
     content: 'Second comment',
     createdAt: '2026-09-14T10:05:00Z',
     user: { name: 'Mike' },
+    replies: [],
   };
-
   const mockPaginatedResponse: PaginatedComments = {
     data: [mockComment1],
     total: 2,
@@ -65,7 +64,7 @@ describe('CommentsService', () => {
   });
 
   describe('loadComments', () => {
-    it('should should load initial page (1) and update store state', () => {
+    it('should load initial page (1) and update store state', () => {
       service.loadComments(mockTaskId, 1);
 
       expect(mockDataService.getComments).toHaveBeenCalledWith(mockTaskId, 1, 5);
@@ -109,7 +108,7 @@ describe('CommentsService', () => {
   });
 
   describe('addComments', () => {
-    it('should append newly created comment and increment total count', () => {
+    it('should append newly created top-level comment and increment total count', () => {
       const newCommentContent = 'New comment';
       const newComment: Comment = {
         id: 3,
@@ -127,14 +126,39 @@ describe('CommentsService', () => {
       expect(service.total()).toBe(2);
 
       service.addComment(mockTaskId, newCommentContent).subscribe();
-      expect(mockDataService.createComment).toHaveBeenCalledWith(mockTaskId, newCommentContent);
+      expect(mockDataService.createComment).toHaveBeenCalledWith(mockTaskId, newCommentContent, undefined);
       expect(service.comments()).toEqual([mockComment1, newComment]);
       expect(service.total()).toBe(3);
+    });
+
+    it('should insert reply comment into parent comment replies array', () => {
+      const replyContent = 'Reply to comment 1';
+      const replyComment: Comment = {
+        id: 4,
+        taskId: mockTaskId,
+        userId: 13,
+        parentId: mockComment1.id,
+        content: replyContent,
+        createdAt: '2026-09-18T10:12:00Z',
+        user: { name: 'Dave' },
+      };
+
+      mockDataService.createComment.mockReturnValue(of(replyComment));
+
+      service.loadComments(mockTaskId, 1);
+      service.addComment(mockTaskId, replyContent, mockComment1.id).subscribe();
+
+      expect(mockDataService.createComment).toHaveBeenCalledWith(mockTaskId, replyContent, mockComment1.id);
+
+      const topComment = service.comments()[0];
+
+      expect(topComment.replies?.length).toBe(1);
+      expect(topComment.replies?.[0].id).toBe(4);
     });
   });
 
   describe('deleteComments', () => {
-    it('should remove deleted comment and decrement total count', () => {
+    it('should remove top-level deleted comment and decrement total count', () => {
       mockDataService.deleteComment.mockReturnValue(of({ success: true }));
 
       service.loadComments(mockTaskId, 1);
@@ -144,6 +168,39 @@ describe('CommentsService', () => {
       expect(mockDataService.deleteComment).toHaveBeenCalledWith(mockTaskId, mockComment1.id);
       expect(service.comments()).toEqual([]);
       expect(service.total()).toBe(1);
+    });
+
+    it('should recursively remove nested child comment from parent replies array', () => {
+      mockDataService.deleteComment.mockReturnValue(of({ success: true }));
+
+      const commentWithReply: Comment = {
+        ...mockComment1,
+        replies: [
+          {
+            id: 99,
+            taskId: mockTaskId,
+            userId: 15,
+            parentId: mockComment1.id,
+            content: 'Nested child reply',
+            createdAt: '2026-09-14T10:15:00Z',
+            user: { name: 'Eva' },
+          },
+        ],
+      };
+
+      mockDataService.getComments.mockReturnValueOnce(of({
+        ...mockPaginatedResponse,
+        data: [commentWithReply],
+      }));
+
+      service.loadComments(mockTaskId, 1);
+      expect(service.comments()[0].replies?.length).toBe(1);
+
+      service.deleteComment(mockTaskId, 99).subscribe();
+
+      expect(mockDataService.deleteComment).toHaveBeenCalledWith(mockTaskId, 99);
+      expect(service.comments().length).toBe(1);
+      expect(service.comments()[0].replies?.length).toBe(0);
     });
   });
 
