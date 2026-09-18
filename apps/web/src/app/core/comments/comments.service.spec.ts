@@ -60,7 +60,6 @@ describe('CommentsService', () => {
     expect(service.isLoading()).toEqual(false);
     expect(service.page()).toEqual(1);
     expect(service.hasMore()).toEqual(false);
-    expect(service.total()).toEqual(0);
   });
 
   describe('loadComments', () => {
@@ -69,7 +68,6 @@ describe('CommentsService', () => {
 
       expect(mockDataService.getComments).toHaveBeenCalledWith(mockTaskId, 1, 5);
       expect(service.comments()).toEqual([mockComment1]);
-      expect(service.total()).toBe(2);
       expect(service.page()).toBe(1);
       expect(service.hasMore()).toBe(true);
       expect(service.isLoading()).toBe(false);
@@ -123,12 +121,10 @@ describe('CommentsService', () => {
 
       service.loadComments(mockTaskId, 1);
       expect(service.comments().length).toBe(1);
-      expect(service.total()).toBe(2);
 
       service.addComment(mockTaskId, newCommentContent).subscribe();
       expect(mockDataService.createComment).toHaveBeenCalledWith(mockTaskId, newCommentContent, undefined);
       expect(service.comments()).toEqual([mockComment1, newComment]);
-      expect(service.total()).toBe(3);
     });
 
     it('should insert reply comment into parent comment replies array', () => {
@@ -167,7 +163,6 @@ describe('CommentsService', () => {
       service.deleteComment(mockTaskId, mockComment1.id).subscribe();
       expect(mockDataService.deleteComment).toHaveBeenCalledWith(mockTaskId, mockComment1.id);
       expect(service.comments()).toEqual([]);
-      expect(service.total()).toBe(1);
     });
 
     it('should recursively remove nested child comment from parent replies array', () => {
@@ -212,7 +207,6 @@ describe('CommentsService', () => {
       service.clearComments();
 
       expect(service.comments()).toEqual([]);
-      expect(service.total()).toBe(0);
       expect(service.page()).toBe(1);
       expect(service.hasMore()).toBe(false);
       expect(service.isLoading()).toBe(false);

@@ -10,7 +10,6 @@ export interface CommentsState {
   isLoading: boolean;
   page: number;
   hasMore: boolean;
-  total: number;
 }
 
 const initialState: CommentsState = {
@@ -18,7 +17,6 @@ const initialState: CommentsState = {
   isLoading: false,
   page: 1,
   hasMore: false,
-  total: 0,
 };
 
 export const CommentsService = signalStore(
@@ -35,7 +33,6 @@ export const CommentsService = signalStore(
             isLoading: false,
             page: response.page,
             hasMore: response.hasMore,
-            total: response.total,
           });
         },
         error: () => patchState(store, { isLoading: false }),
@@ -46,14 +43,9 @@ export const CommentsService = signalStore(
       return dataService.createComment(taskId, content, parentId).pipe(
         tap((newComment) => {
           if (!parentId) {
-            patchState(store, {
-              comments: [...store.comments(), newComment],
-              total: store.total() + 1,
-            });
+            patchState(store, { comments: [...store.comments(), newComment] });
           } else {
-            patchState(store, {
-              comments: insertReplyInTree(store.comments(), newComment, parentId),
-            });
+            patchState(store, { comments: insertReplyInTree(store.comments(), newComment, parentId) });
           }
         })
       );
@@ -62,10 +54,7 @@ export const CommentsService = signalStore(
     deleteComment(taskId: number, commentId: number) {
       return dataService.deleteComment(taskId, commentId).pipe(
         tap(() => {
-          patchState(store, {
-            comments: removeCommentFromTree(store.comments(), commentId),
-            total: Math.max(0, store.total() - 1),
-          });
+          patchState(store, { comments: removeCommentFromTree(store.comments(), commentId) });
         })
       );
     },
