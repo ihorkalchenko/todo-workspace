@@ -128,7 +128,7 @@ describe('CommentComponent', () => {
       expect(component.isReplying()).toBe(false);
     });
 
-    it('should not post a reply ifnreply text is empty or whitespace', () => {
+    it('should not post a reply if reply text is empty or whitespace', () => {
       component.toggleReply();
       component.replyText.set('  ');
 

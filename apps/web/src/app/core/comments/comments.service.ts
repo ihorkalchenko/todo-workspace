@@ -66,7 +66,7 @@ export const CommentsService = signalStore(
 );
 
 /**
- * Recursively inserts a new reply commment under its matching parent comment within a tree of nested comments.
+ * Recursively inserts a new reply comment under its matching parent comment within a tree of nested comments.
  *
  * @param comments - Array of top-level/nested comments
  * @param newComment - The newly created reply comment to insert
@@ -76,7 +76,7 @@ export const CommentsService = signalStore(
 function insertReplyInTree(comments: Comment[], newComment: Comment, parentId?: number): Comment[] {
   return comments.map((c) => {
     if (c.id === parentId) {
-      return { ...c, replies: [...(c.replies || []), newComment] }
+      return { ...c, replies: [...(c.replies || []), newComment] };
     }
 
     if (c.replies && c.replies.length > 0) {

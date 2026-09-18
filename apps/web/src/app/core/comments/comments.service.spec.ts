@@ -154,7 +154,7 @@ describe('CommentsService', () => {
   });
 
   describe('deleteComments', () => {
-    it('should remove top-level deleted comment and decrement total count', () => {
+    it('should remove a top-level comment', () => {
       mockDataService.deleteComment.mockReturnValue(of({ success: true }));
 
       service.loadComments(mockTaskId, 1);
