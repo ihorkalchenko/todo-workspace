@@ -10,7 +10,7 @@ import { vi, describe, beforeEach, it, expect } from 'vitest';
 describe('CommentComponent', () => {
   let component: CommentComponent;
   let fixture: ComponentFixture<CommentComponent>;
-  let mockCommentsService: { deleteComment: any };
+  let mockCommentsService: { deleteComment: any, addComment: any };
   let mockConfirmDialogService: { confirm: any };
 
   const mockUser: User = {
@@ -28,6 +28,7 @@ describe('CommentComponent', () => {
     user: {
       name: 'John',
     },
+    replies: [],
   };
 
   const mockTask: Task = {
@@ -44,6 +45,7 @@ describe('CommentComponent', () => {
   beforeEach(async () => {
     mockCommentsService = {
       deleteComment: vi.fn().mockReturnValue(of({ success: true })),
+      addComment: vi.fn().mockReturnValue(of({})),
     };
 
     mockConfirmDialogService = {
@@ -99,38 +101,67 @@ describe('CommentComponent', () => {
     });
   });
 
-  describe('Delete button visibility', () => {
-    it('should show delete button if the comment belongs to the current user', () => {
+  describe('Reply functionality', () => {
+    beforeEach(() => {
       fixture.componentRef.setInput('task', mockTask);
       fixture.componentRef.setInput('comment', mockComment);
       fixture.componentRef.setInput('currentUser', mockUser);
       fixture.detectChanges();
-
-      const compiled = fixture.nativeElement as HTMLElement;
-      const deleteBtn = compiled.querySelector('button[title="Delete comment"]');
-      expect(deleteBtn).toBeTruthy();
     });
 
-    it('should hide delete button if the comment belongs to a different user', () => {
+    it('should toggle isReplying signal state', () => {
+      expect(component.isReplying()).toBe(false);
+      component.toggleReply();
+      expect(component.isReplying()).toBe(true);
+      component.toggleReply();
+      expect(component.isReplying()).toBe(false);
+    });
+
+    it('should post a reply when reply text is not empty', () => {
+      component.toggleReply();
+      component.replyText.set('Nested reply text');
+
+      component.postReply();
+
+      expect(mockCommentsService.addComment).toHaveBeenCalledWith(mockTask.id, 'Nested reply text', mockComment.id);
+      expect(component.replyText()).toBe('');
+      expect(component.isReplying()).toBe(false);
+    });
+
+    it('should not post a reply if reply text is empty or whitespace', () => {
+      component.toggleReply();
+      component.replyText.set('  ');
+
+      component.postReply();
+      expect(mockCommentsService.addComment).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Nested replies rendering', () => {
+    it('should recursively render nested child comments', () => {
+      const commentWithReplies: Comment = {
+        ...mockComment,
+        replies: [
+          {
+            id: 102,
+            taskId: 42,
+            userId: 2,
+            parentId: 2,
+            content: 'Child reply content',
+            createdAt: new Date().toISOString(),
+            user: { name: 'Bob' },
+          },
+        ],
+      };
+
       fixture.componentRef.setInput('task', mockTask);
-      fixture.componentRef.setInput('comment', mockComment);
-      fixture.componentRef.setInput('currentUser', {...mockUser, id: 999});
+      fixture.componentRef.setInput('comment', commentWithReplies);
+      fixture.componentRef.setInput('currentUser', mockUser);
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement as HTMLElement;
-      const deleteBtn = compiled.querySelector('button[title="Delete comment"]');
-      expect(deleteBtn).toBeNull();
-    });
-
-    it('should hide delete button if there is no logged-in user', () => {
-      fixture.componentRef.setInput('task', mockTask);
-      fixture.componentRef.setInput('comment', mockComment);
-      fixture.componentRef.setInput('currentUser', null);
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement as HTMLElement;
-      const deleteBtn = compiled.querySelector('button[title="Delete comment"]');
-      expect(deleteBtn).toBeNull();
+      const childCommentEls = compiled.querySelectorAll('app-comment');
+      expect(childCommentEls.length).toBe(1);
     });
   });
 

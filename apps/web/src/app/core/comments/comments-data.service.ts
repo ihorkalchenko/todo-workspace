@@ -18,8 +18,8 @@ export class CommentsDataService {
     return this.http.get<PaginatedComments>(`${this.apiUrl}/${taskId}/comments`, { params });
   }
 
-  createComment(taskId: number, content: string) {
-    return this.http.post<Comment>(`${this.apiUrl}/${taskId}/comments`, { content });
+  createComment(taskId: number, content: string, parentId?: number) {
+    return this.http.post<Comment>(`${this.apiUrl}/${taskId}/comments`, { content, parentId });
   }
 
   deleteComment(taskId: number, commentId: number) {
