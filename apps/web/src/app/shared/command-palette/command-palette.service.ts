@@ -11,6 +11,12 @@ import {
 } from '@angular/core';
 import { CommandPaletteComponent } from './command-palette';
 
+interface NavigatorWithData extends Navigator {
+  userAgentData?: {
+    platform?: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -82,10 +88,10 @@ export class CommandPaletteService {
   private detectIsMac(): boolean {
     if (typeof navigator === 'undefined') return false;
 
-    const userAgentData = (navigator as Record<string, any>)['userAgent'];
-
-    if (userAgentData?.platform) {
-      return userAgentData.platform.toLowerCase().includes('mac');
+    const nav = navigator as NavigatorWithData;
+    
+    if (nav.userAgentData?.platform) {
+      return nav.userAgentData.platform.toLowerCase().includes('mac');
     }
 
     return /mac|iphone|ipad|ipod/i.test(navigator.userAgent);

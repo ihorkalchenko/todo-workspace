@@ -1,6 +1,13 @@
 @if (isOpen()) {
   <div class="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-gray-500/75 backdrop-blur-sm transition-opacity" (click)="closePalette()"></div>
+    <button
+      type="button"
+      tabindex="-1"
+      aria-label="Close command palette overlay"
+      class="fixed inset-0 bg-gray-500/75 backdrop-blur-sm transition-opacity border-none cursor-default w-full h-full"
+      (click)="closePalette()"
+      (keydown.escape)="closePalette()"
+    ></button>
 
     <div class="mx-auto max-w-xl transform rounded-xl bg-white shadow-2xl ring-1 ring-black/5 transition-all overflow-hidden relative">
       <div class="relative flex items-center border-b border-gray-100 px-4">
@@ -9,9 +16,9 @@
         </svg>
 
         <input
+          #searchInput
           type="text"
           placeholder="Search tasks or commands... (e.g. 'Create task')"
-          autofocus
           [value]="query()"
           (input)="onInput($event)"
           class="h-14 w-full bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:outline-none"
@@ -31,8 +38,12 @@
           <ul class="space-y-1">
             @for (item of items(); track item.id; let i = $index) {
               <li
+                tabindex="0"
+                role="option"
                 (click)="item.action()"
+                (keydown.enter)="item.action()"
                 (mouseenter)="selectedIndex.set(i)"
+                [attr.aria-selected]="selectedIndex() === i"
                 [class.bg-indigo-50]="selectedIndex() === i"
                 [class.text-indigo-900]="selectedIndex() === i"
                 class="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-gray-700 cursor-pointer select-none transition-colors"

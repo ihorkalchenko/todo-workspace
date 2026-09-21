@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { TasksService } from '../../core/tasks/tasks.service';
@@ -25,6 +34,8 @@ export class CommandPaletteComponent {
   private readonly router = inject(Router);
   private readonly tasksService = inject(TasksService);
   private readonly commandPaletteService = inject(CommandPaletteService);
+
+  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
   readonly query = signal<string>('');
   readonly selectedIndex = signal<number>(0);
@@ -86,6 +97,15 @@ export class CommandPaletteComponent {
     return [...matchingActions, ...matchingTasks];
   });
 
+  constructor() {
+    effect(() => {
+      const input = this.searchInput();
+      if (input) {
+        input.nativeElement.focus();
+      }
+    });
+  }
+
   closePalette () {
     this.commandPaletteService.close();
   }
@@ -97,22 +117,26 @@ export class CommandPaletteComponent {
     e.preventDefault();
 
     switch (e.key) {
-      case 'Escape':
+      case 'Escape': {
         this.commandPaletteService.close();
         break;
-      case 'ArrowDown':
+      }
+      case 'ArrowDown': {
         const nextIndex = (this.selectedIndex() + 1) % (this.items().length || 1);
         this.selectedIndex.set(nextIndex);
         break;
-      case 'ArrowUp':
+      }
+      case 'ArrowUp': {
         const total = this.items().length || 1;
         const prevIndex = (this.selectedIndex() - 1 + total) % total;
         this.selectedIndex.set(prevIndex);
         break;
-      case 'Enter':
+      }
+      case 'Enter': {
         const selected = this.items()[this.selectedIndex()];
         if (selected) selected.action();
         break;
+      }
     }
   }
 
