@@ -1,17 +1,18 @@
+import { vi, describe, beforeEach, it, expect, Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+
+import { User } from '@todo-workspace/users';
+import { Comment, Task } from '@todo-workspace/tasks';
 import { CommentComponent } from './comment';
 import { CommentsService } from '../../../../../core/comments/comments.service';
 import { ConfirmDialogService } from '../../../../../shared/confirm-dialog/confirm-dialog.service';
-import { Comment, Task } from '@todo-workspace/tasks';
-import { User } from '@todo-workspace/users';
-import { of } from 'rxjs';
-import { vi, describe, beforeEach, it, expect } from 'vitest';
 
 describe('CommentComponent', () => {
   let component: CommentComponent;
   let fixture: ComponentFixture<CommentComponent>;
-  let mockCommentsService: { deleteComment: any, addComment: any };
-  let mockConfirmDialogService: { confirm: any };
+  let mockCommentsService: { deleteComment: Mock, addComment: Mock };
+  let mockConfirmDialogService: { confirm: Mock };
 
   const mockUser: User = {
     id: 1,

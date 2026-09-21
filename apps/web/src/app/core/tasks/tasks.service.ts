@@ -26,7 +26,7 @@ export const TasksService = signalStore(
         .getTasks()
         .subscribe({
           next: tasks => patchState(store, { tasks, isLoading: false }),
-          error: err => patchState(store, { isLoading: false }),
+          error: () => patchState(store, { isLoading: false }),
         });
     },
 
