@@ -27,6 +27,20 @@
         </div>
         <div class="hidden md:block">
           <div class="flex items-center ms-6 gap-2">
+            <button
+              type="button"
+              (click)="openCommandPalette()"
+              class="flex items-center gap-2 cursor-pointer rounded-lg bg-indigo-900/60 px-3 py-1.5 text-xs text-gray-300 hover:bg-indigo-900 hover:text-white border border-indigo-700/50 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+              <span>Search...</span>
+              <kbd class="rounded bg-indigo-800 px-1.5 py-0.5 text-[10px] font-semibold text-gray-200">
+                {{ shortcutLabel() }}
+              </kbd>
+            </button>
+
             <span class="text-sm font-medium text-gray-200">
               Hi, {{ user()?.name }}!
             </span>

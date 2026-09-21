@@ -2,7 +2,9 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
+
 import { AuthService } from '../../core/auth/auth.service';
+import { CommandPaletteService } from '../../shared/command-palette/command-palette.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,8 +20,10 @@ export class DashboardPage {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
+  private readonly commandPaletteService = inject(CommandPaletteService);
 
   readonly user = this.authService.user;
+  readonly shortcutLabel = this.commandPaletteService.shortcutLabel;
 
   readonly title = toSignal<string>(
     this.router.events.pipe(
@@ -40,5 +44,9 @@ export class DashboardPage {
         next: () => this.router.navigate(['/login']),
         error: () => this.router.navigate(['/login']),
     });
+  }
+
+  openCommandPalette() {
+    this.commandPaletteService.open();
   }
 }
