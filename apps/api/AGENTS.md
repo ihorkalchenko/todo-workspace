@@ -41,3 +41,5 @@ Since this project is part of an Nx workspace, use the following commands:
 - **Shared Contracts:** Reference shared types/interfaces from the domain-specific shared libraries (`@todo-workspace/auth`, `@todo-workspace/constants`, `@todo-workspace/tasks`, and `@todo-workspace/users`) to ensure synchronization between NestJS endpoints and Angular services.
 - **Unit Testing & Spec Files:** Whenever creating or modifying any services or controllers (e.g., `comments.service.ts`, `comments.controller.ts`), you **MUST ALWAYS** provide the updated `.spec.ts` unit test files alongside the code changes to keep mock DB queries, arguments, and assertions synchronized. Run `nx test api` to verify changes.
 - **Quotes:** Use single quotes for imports, module decorators, and method strings unless template strings or JSON structures demand otherwise.
+- **Strict Typing:** Avoid using `any` for variables, function signatures, DTOs, or mock objects. Always use explicit TypeScript types, generics, or proper test utilities (e.g., `jest.Mock` or `Mock` from `vitest`).
+
