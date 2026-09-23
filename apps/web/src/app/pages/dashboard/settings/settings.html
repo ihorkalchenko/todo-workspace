@@ -5,6 +5,44 @@
       <p class="mt-1 text-sm text-gray-500">Update your personal information.</p>
     </div>
 
+    <div class="flex items-center gap-6 px-6 pt-6">
+      <div
+        class="relative group cursor-pointer"
+        tabindex="0"
+        (click)="fileInput.click()"
+        (keydown.enter)="fileInput.click()"
+      >
+        <app-user-avatar
+          [name]="user()?.name"
+          [avatarUrl]="user()?.avatar"
+          [size]="72"
+        />
+
+        <div class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="font-medium text-xs text-white">Change</span>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="font-medium text-sm text-gray-900">Profile Picture</h4>
+        <p class="mt-1 text-xs text-gray-500">PNG, JPG or WEBP up to 2MB.</p>
+        <button
+          type="button"
+          (click)="fileInput.click()"
+          class="mt-2 text-xs font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer"
+        >
+          Upload new picture
+        </button>
+        <input
+         #fileInput
+         type="file"
+         accept="image/png, image/jpeg, image/webp"
+         (change)="onFileSelected($event)"
+         class="hidden"
+        />
+      </div>
+    </div>
+
     <form [formGroup]="form" (ngSubmit)="submit()" class="p-6 space-y-6">
       <div class="grid grid-cols-1 gap-y-6">
         <div>

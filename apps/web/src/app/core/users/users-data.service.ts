@@ -8,10 +8,18 @@ import { User } from '@todo-workspace/users';
 })
 export class UsersDataService {
   private readonly http = inject(HttpClient);
+  private readonly apiUrl = '/api/users';
 
   getUsers(search?: string) {
-    return this.http.get<User[]>('api/users', {
+    return this.http.get<User[]>(this.apiUrl, {
       params: search ? { search } : {},
     });
+  }
+
+  uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<User>(`${this.apiUrl}/me/avatar`, formData);
   }
 }

@@ -5,16 +5,13 @@ import { filter, map } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { CommandPaletteService } from '../../shared/command-palette/command-palette.service';
+import { UserAvatar } from '../../shared/user-avatar/user-avatar';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    RouterLink,
-    RouterLinkActive,
-    RouterOutlet
-  ]
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, UserAvatar],
 })
 export class DashboardPage {
   private readonly router = inject(Router);
@@ -27,7 +24,7 @@ export class DashboardPage {
 
   readonly title = toSignal<string>(
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
+      filter((event) => event instanceof NavigationEnd),
       map(() => {
         let child = this.activatedRoute.firstChild;
         while (child?.firstChild) child = child.firstChild;
@@ -38,11 +35,9 @@ export class DashboardPage {
   );
 
   logout() {
-    this.authService
-      .logout()
-      .subscribe({
-        next: () => this.router.navigate(['/login']),
-        error: () => this.router.navigate(['/login']),
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/login']),
+      error: () => this.router.navigate(['/login']),
     });
   }
 

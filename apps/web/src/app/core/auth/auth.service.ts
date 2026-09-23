@@ -5,6 +5,7 @@ import { tap } from 'rxjs';
 
 import { User } from '@todo-workspace/users';
 import { AuthResponse } from '@todo-workspace/auth';
+import { UsersDataService } from "../users/users-data.service";
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ import { AuthResponse } from '@todo-workspace/auth';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly usersDataService = inject(UsersDataService);
   private readonly apiUrl = '/api/auth';
 
   readonly user = signal<User | null>(null);
@@ -25,6 +27,12 @@ export class AuthService {
   updateMe(data: Partial<User>) {
     return this.http.patch<User>(`/api/users/me`, data).pipe(
       tap(updatedUser => this.user.set(updatedUser))
+    );
+  }
+
+  uploadAvatar(file: File) {
+    return this.usersDataService.uploadAvatar(file).pipe(
+      tap(updatedUser => this.user.set(updatedUser)),
     );
   }
 
