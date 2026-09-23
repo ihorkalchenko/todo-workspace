@@ -50,4 +50,4 @@ __screenshots__/
 
 # User Uploads
 /uploads/*
-!/uploads/.gitkeep
+!/uploads/**/.gitkeep
