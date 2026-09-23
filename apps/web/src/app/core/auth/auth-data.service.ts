@@ -11,7 +11,6 @@ export class AuthDataService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/auth';
 
-
   getMe() {
     return this.http.get<AuthResponse>(`${this.apiUrl}/me`);
   }

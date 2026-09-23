@@ -90,7 +90,7 @@ describe('UserAvatar', () => {
       expect(fallBackDiv.textContent?.trim()).toBe('A');
     });
 
-    it('should trim surrounding whitespace fron name', () => {
+    it('should trim surrounding whitespace from name', () => {
       fixture.componentRef.setInput('name', ' Bob  ');
       fixture.detectChanges();
 
