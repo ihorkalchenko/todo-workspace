@@ -50,6 +50,13 @@
       "when": 1789561300825,
       "tag": "0006_abnormal_demogoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789998543237,
+      "tag": "0007_nifty_terrax",
+      "breakpoints": true
     }
   ]
 }

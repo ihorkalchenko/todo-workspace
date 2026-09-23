@@ -18,6 +18,7 @@ describe('CommentComponent', () => {
     id: 1,
     name: 'John',
     email: 'john@example.com',
+    avatar: null,
   };
 
   const mockComment: Comment = {
