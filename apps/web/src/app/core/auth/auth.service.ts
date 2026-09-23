@@ -105,10 +105,6 @@ export const AuthService = signalStore(
         );
     },
 
-    setUser(user: User | null) {
-      patchState(store, { user: user });
-    },
-
     clearUser() {
       patchState(store, { user: null });
       router.navigate(['/login']);
