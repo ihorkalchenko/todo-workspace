@@ -61,7 +61,7 @@ describe('UsersService', () => {
     vi.clearAllMocks();
   });
 
-  it('should  be defined', () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
@@ -179,7 +179,7 @@ describe('UsersService', () => {
       avatar: '/uploads/avatars/avatar-1.png',
     };
 
-    it('should updaet user successfully when email is unchanged or available', async () => {
+    it('should update user successfully when email is unchanged or available', async () => {
       mockReturning.mockResolvedValue([updatedUser]);
 
       const result = await service.updateUser(1, { name: 'Alice Updated' });
