@@ -1,67 +1,117 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
+import { inject} from '@angular/core';
+import { Router} from '@angular/router';
 import { tap } from 'rxjs';
 
 import { User } from '@todo-workspace/users';
-import { AuthResponse } from '@todo-workspace/auth';
-import { UsersDataService } from "../users/users-data.service";
+import { AuthDataService } from './auth-data.service';
+import { UsersDataService } from '../users/users-data.service';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthService {
-  private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
-  private readonly usersDataService = inject(UsersDataService);
-  private readonly apiUrl = '/api/auth';
-
-  readonly user = signal<User | null>(null);
-
-  getMe() {
-    return this.http.get<AuthResponse>(`${this.apiUrl}/me`).pipe(
-      tap(({ user }) => this.user.set(user)),
-    );
-  }
-
-  updateMe(data: Partial<User>) {
-    return this.http.patch<User>(`/api/users/me`, data).pipe(
-      tap(updatedUser => this.user.set(updatedUser))
-    );
-  }
-
-  uploadAvatar(file: File) {
-    return this.usersDataService.uploadAvatar(file).pipe(
-      tap(updatedUser => this.user.set(updatedUser)),
-    );
-  }
-
-  signup(data: Record<string, unknown>) {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, data).pipe(
-      tap(({ user }) => this.user.set(user)),
-    );
-  }
-
-  login(data: Record<string, unknown>) {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
-      tap(({ user }) => this.user.set(user)),
-    );
-  }
-
-  refresh() {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, {}).pipe(
-      tap(({ user }) => this.user.set(user)),
-    );
-  }
-
-  logout() {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/logout`, {}).pipe(
-      tap(() => this.user.set(null)),
-    );
-  }
-
-  clearUser() {
-    this.user.set(null);
-    this.router.navigate(['/login']);
-  }
+export interface AuthState {
+  user: User | null;
+  isLoading: boolean;
 }
+
+const initialState: AuthState = {
+  user: null,
+  isLoading: false,
+};
+
+export const AuthService = signalStore(
+  { providedIn: 'root' },
+  withState(initialState),
+  withMethods((
+    store,
+    authDataService = inject(AuthDataService),
+    usersDataService = inject(UsersDataService),
+    router = inject(Router),
+  ) => ({
+    getMe() {
+      patchState(store, { isLoading: true });
+
+      return authDataService
+        .getMe()
+        .pipe(
+          tap({
+            next: ({ user }) => patchState(store, { user, isLoading: false }),
+            error: () => patchState(store, { isLoading: false }),
+          }),
+        );
+    },
+
+    login(credentials: Record<string, unknown>) {
+      patchState(store, { isLoading: true });
+
+      return authDataService
+        .login(credentials)
+        .pipe(
+          tap({
+            next: ({ user }) => patchState(store, { user, isLoading: false }),
+            error: () => patchState(store, { isLoading: false }),
+          }),
+        );
+    },
+
+    signup(data: Record<string, unknown>) {
+      patchState(store, { isLoading: true });
+
+      return authDataService
+        .signup(data)
+        .pipe(
+          tap({
+            next: ({ user }) => patchState(store, { user, isLoading: false }),
+            error: () => patchState(store, { isLoading: false }),
+          }),
+        );
+    },
+
+    refresh() {
+      return authDataService
+        .refresh()
+        .pipe(
+          tap({
+            next: ({ user }) => patchState(store, { user, isLoading: false }),
+            error: () => patchState(store, { isLoading: false }),
+          }),
+        );
+    },
+
+    logout() {
+      patchState(store, { isLoading: true });
+
+      return authDataService
+        .logout()
+        .pipe(
+          tap({
+            next: () => patchState(store, { user: null, isLoading: false }),
+            error: () => patchState(store, { isLoading: false }),
+          }),
+        );
+    },
+
+    updateMe(data: Partial<User>) {
+      return authDataService
+        .updateMe(data)
+        .pipe(
+          tap((updatedUser) => patchState(store, { user: updatedUser })),
+        );
+    },
+
+    uploadAvatar(file: File) {
+      return usersDataService
+        .uploadAvatar(file)
+        .pipe(
+          tap((updatedUser) => patchState(store, { user: updatedUser })),
+        );
+    },
+
+    setUser(user: User | null) {
+      patchState(store, { user: user });
+    },
+
+    clearUser() {
+      patchState(store, { user: null });
+      router.navigate(['/login']);
+    },
+  })),
+);
