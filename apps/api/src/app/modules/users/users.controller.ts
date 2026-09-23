@@ -1,24 +1,33 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
+  Logger,
   NotFoundException,
   Param,
   ParseIntPipe,
-  Patch, Post,
+  Patch,
+  Post,
   Query,
-  Req, UploadedFile,
-  UseGuards, UseInterceptors
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { join } from 'path';
+import { unlink } from 'node:fs/promises';
 
 import { User } from '@todo-workspace/users';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AvatarUploadInterceptor } from './interceptors/avatar-upload.interceptor';
+import { AvatarUploadInterceptor, RequestWithUser } from './interceptors/avatar-upload.interceptor';
 
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
+
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
@@ -71,10 +80,25 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(AvatarUploadInterceptor)
   async uploadAvatar(
-    @Req() req: any,
-    @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const currentUser = await this.usersService.getUser(req.user.id);
+
     const avatarPath = `/uploads/avatars/${file.filename}`;
-    return await this.usersService.updateUser(req.user.id, { avatar: avatarPath });
+    const updatedUser = await this.usersService.updateUser(req.user.id, { avatar: avatarPath });
+
+    if (currentUser?.avatar) {
+      const oldFilePath = join(process.cwd(), currentUser.avatar);
+      unlink(oldFilePath).catch((err) => {
+        this.logger.warn(`Failed to delete old avatar: ${oldFilePath}`, err.message);
+      });
+    }
+
+    return updatedUser;
   }
 }

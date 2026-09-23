@@ -4,15 +4,29 @@ import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { mkdirSync } from 'fs';
 
 export interface RequestWithUser extends Request {
   user?: {
     id: number;
+    name?: string;
+    email?: string;
   };
 }
 
 export type FilenameCallback = (error: Error | null, filename: string) => void;
 export type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
+export type DestinationCallback = (error: Error | null, destination: string) => void;
+
+export const avatarDestinationHandler = (
+  req: Request,
+  file: Express.Multer.File,
+  callback: DestinationCallback,
+): void => {
+  const uploadPath = './uploads/avatars';
+  mkdirSync(uploadPath, { recursive: true });
+  callback(null, uploadPath);
+};
 
 export const avatarFilenameHandler = (
   req: RequestWithUser,
@@ -39,7 +53,7 @@ export const avatarFileFilterHandler = (
 
 export const avatarUploadOptions: MulterOptions = {
   storage: diskStorage({
-    destination: './uploads/avatars',
+    destination: avatarDestinationHandler,
     filename: avatarFilenameHandler,
   }),
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB

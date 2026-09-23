@@ -4,7 +4,10 @@ import { BadRequestException } from '@nestjs/common';
 
 import {
   AvatarUploadInterceptor,
-  RequestWithUser, avatarFileFilterHandler, avatarFilenameHandler,
+  RequestWithUser,
+  avatarFileFilterHandler,
+  avatarFilenameHandler,
+  avatarDestinationHandler,
 } from './avatar-upload.interceptor';
 
 describe('AvatarUploadInterceptor', () => {
@@ -44,6 +47,20 @@ describe('AvatarUploadInterceptor', () => {
         );
         callback.mockClear();
       });
+    });
+  });
+
+  describe('avatarDestinationHandler', () => {
+    it('should call callback with uploads/avatars path', () => {
+      const callback = vi.fn();
+
+      avatarDestinationHandler(
+        {} as Request,
+        {} as Express.Multer.File,
+        callback,
+      );
+
+      expect(callback).toHaveBeenCalledWith(null, './uploads/avatars');
     });
   });
 
