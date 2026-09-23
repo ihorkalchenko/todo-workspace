@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DRIZZLE } from '../../db/db.module';
-import * as bcrypt from 'bcrypt';
 
 import { UsersService } from './users.service';
 import { User } from '@todo-workspace/users';
