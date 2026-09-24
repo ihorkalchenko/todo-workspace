@@ -41,6 +41,11 @@
               </kbd>
             </button>
 
+            <app-user-avatar
+              [name]="user()?.name"
+              [avatarUrl]="user()?.avatar"
+            />
+
             <span class="text-sm font-medium text-gray-200">
               Hi, {{ user()?.name }}!
             </span>

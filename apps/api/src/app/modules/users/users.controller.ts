@@ -25,6 +25,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AvatarUploadInterceptor, RequestWithUser } from './interceptors/avatar-upload.interceptor';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   private readonly logger = new Logger(UsersController.name);
 
@@ -47,7 +48,6 @@ export class UsersController {
   }
 
   @Patch('me')
-  @UseGuards(JwtAuthGuard)
   async updateMe(@Req() req: any, @Body() body: UpdateUserDto): Promise<User> {
     return await this.usersService.updateUser(req.user.id, body);
   }
@@ -77,7 +77,6 @@ export class UsersController {
    * }
    */
   @Post('me/avatar')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(AvatarUploadInterceptor)
   async uploadAvatar(
     @Req() req: RequestWithUser,
