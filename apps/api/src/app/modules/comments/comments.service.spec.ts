@@ -18,6 +18,9 @@ describe('CommentsService', () => {
   const mockDelete = vi.fn().mockReturnValue({ where: mockDeleteWhere });
   const mockInsertValues = vi.fn();
   const mockInsert = vi.fn().mockReturnValue({ values: mockInsertValues });
+  const mockUpdateWhere = vi.fn();
+  const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere });
+  const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet });
   const mockTransaction = vi.fn((cb) => cb(mockDB));
 
   const mockDB = {
@@ -29,6 +32,7 @@ describe('CommentsService', () => {
     },
     select: mockSelect,
     insert: mockInsert,
+    update: mockUpdate,
     delete: mockDelete,
     transaction: mockTransaction,
   };
@@ -157,6 +161,7 @@ describe('CommentsService', () => {
         parentId: null,
         content: 'New Comment',
         createdAt: new Date().toISOString(),
+        updatedAt: null,
         user: { name: 'Alice' },
       };
 
@@ -182,6 +187,7 @@ describe('CommentsService', () => {
         parentId: 1,
         content: 'Nested reply',
         createdAt: new Date().toISOString(),
+        updatedAt: null,
         user: { name: 'Alice' },
       };
 
@@ -206,6 +212,51 @@ describe('CommentsService', () => {
       await expect(
       service.createComment(mockTaskId, mockUserId, 'Invalid reply', 999)
     ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('updateComment', () => {
+    const mockCommentId = 5;
+    const mockUserId = 42;
+    const mockTaskId = 101;
+    const updatedContent = 'Updated content';
+
+    it('should update comment, record activity and return updated comment if comment exists and belong to user', async () => {
+      const mockComment = {
+        id: mockCommentId,
+        taskId: mockTaskId,
+        userId: mockUserId,
+        content: 'Original content',
+      };
+      const mockUpdatedComment: Comment = {
+        id: mockCommentId,
+        taskId: mockTaskId,
+        userId: mockUserId,
+        parentId: null,
+        content: updatedContent,
+        createdAt: '2026-08-24',
+        updatedAt: '2026-08-25',
+        user: { name: 'Alice' },
+      };
+
+      mockWhere.mockResolvedValue([mockComment]);
+      mockUpdateWhere.mockResolvedValue([]);
+      mockInsertValues.mockResolvedValue([]);
+      mockDB.query.comments.findFirst.mockResolvedValue(mockUpdatedComment);
+
+      const result = await service.updateComment(mockCommentId, mockUserId, updatedContent);
+
+      expect(result).toEqual(mockUpdatedComment);
+      expect(mockUpdate).toHaveBeenCalledWith(schema.comments);
+      expect(mockUpdateSet).toHaveBeenCalledWith({ content: updatedContent, updatedAt: expect.anything() });
+    });
+
+    it('should return undefined if comment does not exist or does not belong to user', async () => {
+      mockWhere.mockResolvedValue([]);
+
+      const result = await service.updateComment(mockCommentId, mockUserId, updatedContent);
+
+      expect(result).toBeUndefined();
     });
   });
 

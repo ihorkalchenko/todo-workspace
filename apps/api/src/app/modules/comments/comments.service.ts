@@ -58,6 +58,50 @@ export class CommentsService {
     });
   }
 
+  async updateComment(
+    commentId: number,
+    userId: number,
+    content: string,
+  ): Promise<Comment | undefined> {
+    return this.db.transaction(async (tx) => {
+      const [comment] = await tx
+        .select()
+        .from(schema.comments)
+        .where(
+          and(
+            eq(schema.comments.id, commentId),
+            eq(schema.comments.userId, userId),
+          ),
+        );
+
+      if (!comment) return undefined;
+
+      await tx
+        .update(schema.comments)
+        .set({ content, updatedAt: sql`now()` })
+        .where(eq(schema.comments.id, commentId));
+
+      await tx
+        .insert(schema.activities)
+        .values({
+          taskId: comment.taskId,
+          userId,
+          action: 'edited a comment',
+        });
+
+      return tx.query.comments.findFirst({
+        where: eq(schema.comments.id, commentId),
+        with: {
+          user: {
+            columns: {
+              name: true,
+            },
+          },
+        },
+      });
+    });
+  }
+
   async deleteComment(commentId: number, userId: number): Promise<boolean> {
     return this.db.transaction(async (tx) => {
       const [comment] = await tx
