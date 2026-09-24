@@ -244,7 +244,12 @@ describe('CommentsService', () => {
       mockInsertValues.mockResolvedValue([]);
       mockDB.query.comments.findFirst.mockResolvedValue(mockUpdatedComment);
 
-      const result = await service.updateComment(mockCommentId, mockUserId, updatedContent);
+      const result = await service.updateComment(
+        mockCommentId,
+        mockTaskId,
+        mockUserId,
+        updatedContent,
+      );
 
       expect(result).toEqual(mockUpdatedComment);
       expect(mockUpdate).toHaveBeenCalledWith(schema.comments);
@@ -254,7 +259,12 @@ describe('CommentsService', () => {
     it('should return undefined if comment does not exist or does not belong to user', async () => {
       mockWhere.mockResolvedValue([]);
 
-      const result = await service.updateComment(mockCommentId, mockUserId, updatedContent);
+      const result = await service.updateComment(
+        mockCommentId,
+        mockTaskId,
+        mockUserId,
+        updatedContent,
+      );
 
       expect(result).toBeUndefined();
     });

@@ -126,6 +126,7 @@ export class CommentsController {
    * Update an existing comment by its ID.
    *
    * @param id - The ID of the comment to update
+   * @param taskId - The taskId of the comment to update
    * @param req - The HTTP request containing the authenticated user context (`req.user.id`)
    * @param dto - UpdateCommentDto containing the updated content
    * @returns Updated Comment object
@@ -152,11 +153,13 @@ export class CommentsController {
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
+    @Param('taskId', ParseIntPipe) taskId: number,
     @Req() req: any,
     @Body() dto: UpdateCommentDto,
   ): Promise<Comment> {
     const comment = await this.commentsService.updateComment(
       id,
+      taskId,
       req.user.id,
       dto.content,
     );

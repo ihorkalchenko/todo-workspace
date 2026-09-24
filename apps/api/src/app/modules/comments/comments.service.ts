@@ -60,6 +60,7 @@ export class CommentsService {
 
   async updateComment(
     commentId: number,
+    taskId: number,
     userId: number,
     content: string,
   ): Promise<Comment | undefined> {
@@ -71,6 +72,7 @@ export class CommentsService {
           and(
             eq(schema.comments.id, commentId),
             eq(schema.comments.userId, userId),
+            eq(schema.comments.taskId, taskId),
           ),
         );
 
