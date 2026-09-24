@@ -10,6 +10,11 @@ import {
   avatarDestinationHandler,
 } from './avatar-upload.interceptor';
 
+vi.mock('@todo-workspace/constants', () => ({
+  AVATAR_MAX_SIZE: 2 * 1024 * 1024,
+  AVATAR_UPLOAD_PATH: 'uploads/avatars',
+}))
+
 describe('AvatarUploadInterceptor', () => {
   it('should be defined', () => {
     expect(AvatarUploadInterceptor).toBeDefined();

@@ -4,7 +4,8 @@ import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
-import { mkdirSync } from 'fs';
+
+import { AVATAR_MAX_SIZE, AVATAR_UPLOAD_PATH } from '@todo-workspace/constants';
 
 export interface RequestWithUser extends Request {
   user?: {
@@ -23,9 +24,7 @@ export const avatarDestinationHandler = (
   file: Express.Multer.File,
   callback: DestinationCallback,
 ): void => {
-  const uploadPath = './uploads/avatars';
-  mkdirSync(uploadPath, { recursive: true });
-  callback(null, uploadPath);
+  callback(null, `./${AVATAR_UPLOAD_PATH}`);
 };
 
 export const avatarFilenameHandler = (
@@ -56,7 +55,7 @@ export const avatarUploadOptions: MulterOptions = {
     destination: avatarDestinationHandler,
     filename: avatarFilenameHandler,
   }),
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: AVATAR_MAX_SIZE },
   fileFilter: avatarFileFilterHandler,
 };
 

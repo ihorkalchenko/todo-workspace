@@ -23,6 +23,7 @@ import { User } from '@todo-workspace/users';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AvatarUploadInterceptor, RequestWithUser } from './interceptors/avatar-upload.interceptor';
+import { AVATAR_UPLOAD_PATH } from '@todo-workspace/constants';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -88,7 +89,7 @@ export class UsersController {
 
     const currentUser = await this.usersService.getUser(req.user.id);
 
-    const avatarPath = `/uploads/avatars/${file.filename}`;
+    const avatarPath = `/${AVATAR_UPLOAD_PATH}/${file.filename}`;
     const updatedUser = await this.usersService.updateUser(req.user.id, { avatar: avatarPath });
 
     if (currentUser?.avatar) {
