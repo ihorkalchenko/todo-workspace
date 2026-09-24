@@ -5,7 +5,6 @@ import { tap } from 'rxjs';
 
 import { User } from '@todo-workspace/users';
 import { AuthDataService } from './auth-data.service';
-import { UsersDataService } from '../users/users-data.service';
 
 export interface AuthState {
   user: User | null;
@@ -23,7 +22,6 @@ export const AuthService = signalStore(
   withMethods((
     store,
     authDataService = inject(AuthDataService),
-    usersDataService = inject(UsersDataService),
     router = inject(Router),
   ) => ({
     getMe() {
@@ -98,7 +96,7 @@ export const AuthService = signalStore(
     },
 
     uploadAvatar(file: File) {
-      return usersDataService
+      return authDataService
         .uploadAvatar(file)
         .pipe(
           tap((updatedUser) => patchState(store, { user: updatedUser })),

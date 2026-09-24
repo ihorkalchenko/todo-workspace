@@ -34,4 +34,11 @@ export class AuthDataService {
   updateMe(data: Partial<User>) {
     return this.http.patch<User>('/api/users/me', data);
   }
+
+  uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<User>('/api/users/me/avatar', formData);
+  }
 }

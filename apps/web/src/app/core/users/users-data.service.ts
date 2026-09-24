@@ -15,11 +15,4 @@ export class UsersDataService {
       params: search ? { search } : {},
     });
   }
-
-  uploadAvatar(file: File) {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return this.http.post<User>(`${this.apiUrl}/me/avatar`, formData);
-  }
 }

@@ -5,7 +5,6 @@ import { of } from 'rxjs';
 import { User } from '@todo-workspace/users';
 import { AuthService } from './auth.service';
 import { AuthDataService } from './auth-data.service';
-import { UsersDataService } from '../users/users-data.service';
 
 describe('AuthService', () => {
   let store: InstanceType<typeof AuthService>;
@@ -24,9 +23,6 @@ describe('AuthService', () => {
     refresh: vi.fn(),
     logout: vi.fn(),
     updateMe: vi.fn(),
-  };
-
-  const mockUsersDataService = {
     uploadAvatar: vi.fn(),
   };
 
@@ -35,7 +31,6 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: AuthDataService, useValue: mockAuthDataService },
-        { provide: UsersDataService, useValue: mockUsersDataService },
       ],
     });
 
@@ -55,7 +50,7 @@ describe('AuthService', () => {
 
   it('should clear user on logout', () => {
     mockAuthDataService.login.mockReturnValue(of({ user: mockUser }));
-    store.login({ email: 'alice@example.com', password: 'password' }).subscribe();  
+    store.login({ email: 'alice@example.com', password: 'password' }).subscribe();
     expect(store.user()).toEqual(mockUser);
 
     mockAuthDataService.logout.mockReturnValue(of({ message: 'Logged out' }));
@@ -66,7 +61,7 @@ describe('AuthService', () => {
 
   it('should update user on avatar upload', () => {
     const updatedUser = { ...mockUser, avatar: '/uploads/avatars/avatar-1.png' };
-    mockUsersDataService.uploadAvatar.mockReturnValue(of(updatedUser));
+    mockAuthDataService.uploadAvatar.mockReturnValue(of(updatedUser));
     store.uploadAvatar(new File([], 'avatar.png')).subscribe();
 
     expect(store.user()).toEqual(updatedUser);
