@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { MIN_NAME_LENGTH } from '@todo-workspace/constants';
+import { MIN_NAME_LENGTH, AVATAR_MAX_SIZE } from '@todo-workspace/constants';
 import { EMAIL_REGEXP } from '../../../shared/regexp/regexp';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../shared/notification/notification.service';
@@ -42,6 +42,13 @@ export class SettingsPage {
     if (!input.files?.length) return;
 
     const file = input.files[0];
+
+    if (file.size > AVATAR_MAX_SIZE) {
+      this.notificationService.error('File exceeds the 2MB limit.');
+      input.value = '';
+      return;
+    }
+
     this.loading.set(true);
 
     this.authService
