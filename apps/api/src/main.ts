@@ -6,12 +6,13 @@ import { join } from 'path';
 import { mkdirSync } from 'fs';
 
 import { AppModule } from './app/app.module';
+import { AVATAR_UPLOAD_PATH } from '@todo-workspace/constants';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Ensure uploads/avatars dir exists
-  const uploadsDir = join(process.cwd(), 'uploads/avatars');
+  const uploadsDir = join(process.cwd(), AVATAR_UPLOAD_PATH);
   mkdirSync(uploadsDir, { recursive: true });
 
   // serve uploads directory at

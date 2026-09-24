@@ -2,6 +2,7 @@ import { describe, expect, it, vi} from 'vitest';
 import { Request } from 'express';
 import { BadRequestException } from '@nestjs/common';
 
+import { AVATAR_UPLOAD_PATH } from '@todo-workspace/constants';
 import {
   AvatarUploadInterceptor,
   RequestWithUser,
@@ -60,7 +61,7 @@ describe('AvatarUploadInterceptor', () => {
         callback,
       );
 
-      expect(callback).toHaveBeenCalledWith(null, './uploads/avatars');
+      expect(callback).toHaveBeenCalledWith(null, `./${AVATAR_UPLOAD_PATH}`);
     });
   });
 
