@@ -48,6 +48,7 @@ export class CommentsController {
    *       "userId": 42,
    *       "content": "This is a comment",
    *       "createdAt": "2024-01-15T10:30:00Z",
+   *       "updatedAt": "2024-01-15T11:30:00Z"
    *       "user": { "name": "Alice" }
    *     }
    *   ],
@@ -79,6 +80,7 @@ export class CommentsController {
    * - parentId: number | null
    * - content: string
    * - createdAt: string ISO timestamp
+   * - updatedAt: null
    * - user: object containing `{ name: string }`
    *
    * @throws NotFoundException if the target task with specified ID is not found
@@ -96,6 +98,7 @@ export class CommentsController {
    *   "parentId": 5,
    *   "content": "Great suggestion!",
    *   "createdAt": "2026-09-17T11:00:00Z",
+   *   "updatedAt": null,
    *   "user": { "name": "Bob" }
    * }
    * */
@@ -137,11 +140,12 @@ export class CommentsController {
    * }
    * Response: {
    *   "id": 5,
-   *   "taksId": 123,
+   *   "taskId": 123,
    *   "userId": 42,
    *   "parentId": null,
    *   "content": "Updated comment content",
    *   "createdAt": "2026-09-17T11:00:00Z",
+   *   "updatedAt": "2026-09-17T11:30:00Z",
    *   "user": { "name": "Bob" }
    * }
    * */
