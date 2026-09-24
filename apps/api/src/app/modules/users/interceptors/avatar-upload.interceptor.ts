@@ -6,6 +6,8 @@ import { Request } from 'express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { mkdirSync } from 'fs';
 
+import { AVATAR_MAX_SIZE } from '@todo-workspace/constants';
+
 export interface RequestWithUser extends Request {
   user?: {
     id: number;
@@ -56,7 +58,7 @@ export const avatarUploadOptions: MulterOptions = {
     destination: avatarDestinationHandler,
     filename: avatarFilenameHandler,
   }),
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: AVATAR_MAX_SIZE },
   fileFilter: avatarFileFilterHandler,
 };
 
