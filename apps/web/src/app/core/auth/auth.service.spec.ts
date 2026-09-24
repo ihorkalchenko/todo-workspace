@@ -55,7 +55,7 @@ describe('AuthService', () => {
 
   it('should clear user on logout', () => {
     mockAuthDataService.login.mockReturnValue(of({ user: mockUser }));
-    store.login({ email: 'alice@example.com', password: 'password' }).subscribe();
+    store.login({ email: 'alice@example.com', password: 'password' }).subscribe();  
     expect(store.user()).toEqual(mockUser);
 
     mockAuthDataService.logout.mockReturnValue(of({ message: 'Logged out' }));
