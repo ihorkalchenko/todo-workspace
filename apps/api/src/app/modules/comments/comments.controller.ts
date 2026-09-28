@@ -1,25 +1,25 @@
 import {
   Body,
-  Controller, DefaultValuePipe,
+  Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   NotFoundException,
   Param,
   ParseIntPipe,
-  Post, Query,
+  Patch,
+  Post,
+  Query,
   Req,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { Comment, PaginatedComments } from '@todo-workspace/tasks';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 
-/**
- * TODO: add update endpoint
- *
- * */
 @Controller('tasks/:taskId/comments')
 @UseGuards(JwtAuthGuard)
 export class CommentsController {
@@ -48,6 +48,7 @@ export class CommentsController {
    *       "userId": 42,
    *       "content": "This is a comment",
    *       "createdAt": "2024-01-15T10:30:00Z",
+   *       "updatedAt": "2024-01-15T11:30:00Z"
    *       "user": { "name": "Alice" }
    *     }
    *   ],
@@ -79,6 +80,7 @@ export class CommentsController {
    * - parentId: number | null
    * - content: string
    * - createdAt: string ISO timestamp
+   * - updatedAt: null
    * - user: object containing `{ name: string }`
    *
    * @throws NotFoundException if the target task with specified ID is not found
@@ -96,6 +98,7 @@ export class CommentsController {
    *   "parentId": 5,
    *   "content": "Great suggestion!",
    *   "createdAt": "2026-09-17T11:00:00Z",
+   *   "updatedAt": null,
    *   "user": { "name": "Bob" }
    * }
    * */
@@ -114,6 +117,55 @@ export class CommentsController {
 
     if (!comment) {
       throw new NotFoundException(`Task with ID ${taskId} not found`);
+    }
+
+    return comment;
+  }
+
+  /**
+   * Update an existing comment by its ID.
+   *
+   * @param id - The ID of the comment to update
+   * @param taskId - The taskId of the comment to update
+   * @param req - The HTTP request containing the authenticated user context (`req.user.id`)
+   * @param dto - UpdateCommentDto containing the updated content
+   * @returns Updated Comment object
+   *
+   * @throws NotFoundException if the comment with the specified ID is not found or
+   * does not belong to the authenticated user
+   *
+   * @example
+   * PATCH /tasks/123/comments/5
+   * Body: {
+   *   "content": "Updated comment content"
+   * }
+   * Response: {
+   *   "id": 5,
+   *   "taskId": 123,
+   *   "userId": 42,
+   *   "parentId": null,
+   *   "content": "Updated comment content",
+   *   "createdAt": "2026-09-17T11:00:00Z",
+   *   "updatedAt": "2026-09-17T11:30:00Z",
+   *   "user": { "name": "Bob" }
+   * }
+   * */
+  @Patch(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('taskId', ParseIntPipe) taskId: number,
+    @Req() req: any,
+    @Body() dto: UpdateCommentDto,
+  ): Promise<Comment> {
+    const comment = await this.commentsService.updateComment(
+      id,
+      taskId,
+      req.user.id,
+      dto.content,
+    );
+
+    if (!comment) {
+      throw new NotFoundException(`Comment with ID ${id} not found`);
     }
 
     return comment;

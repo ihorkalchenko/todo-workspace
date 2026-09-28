@@ -5,6 +5,7 @@ export interface Comment {
   readonly parentId?: number | null;
   readonly content: string;
   readonly createdAt: string;
+  readonly updatedAt?: string | null;
   readonly user?: {
     readonly name: string;
   };

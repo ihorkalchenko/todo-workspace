@@ -57,6 +57,13 @@
       "when": 1789998543237,
       "tag": "0007_nifty_terrax",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790256274707,
+      "tag": "0008_silky_pestilence",
+      "breakpoints": true
     }
   ]
 }

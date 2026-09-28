@@ -10,6 +10,7 @@ export const comments = pgTable('comments', {
   parentId: integer('parent_id').references((): AnyPgColumn => comments.id, { onDelete: 'cascade' } ),
   content: text('content').notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }),
 });
 
 export const commentsRelations = relations(comments, ({ one, many }) => ({
