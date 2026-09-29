@@ -22,6 +22,10 @@ export class CommentsDataService {
     return this.http.post<Comment>(`${this.apiUrl}/${taskId}/comments`, { content, parentId });
   }
 
+  updateComment(taskId: number, commentId: number, content: string) {
+    return this.http.patch<Comment>(`${this.apiUrl}/${taskId}/comments/${commentId}`, { content });
+  }
+
   deleteComment(taskId: number, commentId: number) {
     return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${taskId}/comments/${commentId}`);
   }

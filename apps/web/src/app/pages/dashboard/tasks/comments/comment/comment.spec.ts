@@ -11,7 +11,7 @@ import { ConfirmDialogService } from '../../../../../shared/confirm-dialog/confi
 describe('CommentComponent', () => {
   let component: CommentComponent;
   let fixture: ComponentFixture<CommentComponent>;
-  let mockCommentsService: { deleteComment: Mock, addComment: Mock };
+  let mockCommentsService: { deleteComment: Mock, addComment: Mock, updateComment: Mock };
   let mockConfirmDialogService: { confirm: Mock };
 
   const mockUser: User = {
@@ -20,19 +20,18 @@ describe('CommentComponent', () => {
     email: 'john@example.com',
     avatar: null,
   };
-
   const mockComment: Comment = {
     id: 101,
     taskId: 42,
     userId: 1,
     content: 'test comment',
     createdAt: new Date('2026-08-17T12:00:00Z').toISOString(),
+    updatedAt: null,
     user: {
       name: 'John',
     },
     replies: [],
   };
-
   const mockTask: Task = {
     id: 42,
     title: 'Test Task',
@@ -48,6 +47,7 @@ describe('CommentComponent', () => {
     mockCommentsService = {
       deleteComment: vi.fn().mockReturnValue(of({ success: true })),
       addComment: vi.fn().mockReturnValue(of({})),
+      updateComment: vi.fn().mockReturnValue(of({})),
     };
 
     mockConfirmDialogService = {
@@ -103,6 +103,57 @@ describe('CommentComponent', () => {
     });
   });
 
+  describe('Edit functionality', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('task', mockTask);
+      fixture.componentRef.setInput('comment', mockComment);
+      fixture.componentRef.setInput('currentUser', mockUser);
+      fixture.detectChanges();
+    });
+
+    it('should toggle activeMode to edit and prepopulate inputText with current content', () => {
+      expect(component.activeMode()).toBe('none');
+
+      component.toggleEdit();
+      expect(component.activeMode()).toBe('edit');
+      expect(component.inputText()).toBe(mockComment.content);
+
+      component.toggleEdit();
+      expect(component.activeMode()).toBe('none');
+      expect(component.inputText()).toBe('');
+    });
+
+    it('should reset activeMode and clear inputText on cancelAction', () => {
+      component.toggleEdit();
+      component.inputText.set('Modified text');
+      component.cancelAction();
+
+      expect(component.activeMode()).toBe('none');
+      expect(component.inputText()).toBe('');
+    });
+
+    it('should submit edit when text is not empty and reset activeMode on success', () => {
+      component.toggleEdit();
+      component.inputText.set('New edited content');
+      component.submitAction();
+
+      expect(mockCommentsService.updateComment).toHaveBeenCalledWith(
+        mockTask.id,
+        mockComment.id,
+        'New edited content',
+      );
+      expect(component.activeMode()).toBe('none');
+    });
+
+    it('should not submit edit if text is empty or only whitespace', () => {
+      component.toggleEdit();
+      component.inputText.set(' ');
+      component.submitAction();
+
+      expect(mockCommentsService.updateComment).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Reply functionality', () => {
     beforeEach(() => {
       fixture.componentRef.setInput('task', mockTask);
@@ -111,30 +162,38 @@ describe('CommentComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should toggle isReplying signal state', () => {
-      expect(component.isReplying()).toBe(false);
+    it('should toggle activeMode to reply and clear inputText', () => {
+      expect(component.activeMode()).toBe('none');
+
       component.toggleReply();
-      expect(component.isReplying()).toBe(true);
+      expect(component.activeMode()).toBe('reply');
+      expect(component.inputText()).toBe('');
+
       component.toggleReply();
-      expect(component.isReplying()).toBe(false);
+      expect(component.activeMode()).toBe('none');
     });
 
-    it('should post a reply when reply text is not empty', () => {
+    it('should submit reply when text is not empty and reset activeMode on success', () => {
       component.toggleReply();
-      component.replyText.set('Nested reply text');
+      component.inputText.set('Nested reply text');
 
-      component.postReply();
+      component.submitAction();
 
-      expect(mockCommentsService.addComment).toHaveBeenCalledWith(mockTask.id, 'Nested reply text', mockComment.id);
-      expect(component.replyText()).toBe('');
-      expect(component.isReplying()).toBe(false);
+      expect(mockCommentsService.addComment).toHaveBeenCalledWith(
+        mockTask.id,
+        'Nested reply text',
+        mockComment.id,
+      );
+      expect(component.inputText()).toBe('');
+      expect(component.activeMode()).toBe('none');
     });
 
-    it('should not post a reply if reply text is empty or whitespace', () => {
+    it('should not submit reply if text is empty or whitespace', () => {
       component.toggleReply();
-      component.replyText.set('  ');
+      component.inputText.set('  ');
 
-      component.postReply();
+      component.submitAction();
+
       expect(mockCommentsService.addComment).not.toHaveBeenCalled();
     });
   });
@@ -151,6 +210,7 @@ describe('CommentComponent', () => {
             parentId: 2,
             content: 'Child reply content',
             createdAt: new Date().toISOString(),
+            updatedAt: null,
             user: { name: 'Bob' },
           },
         ],
@@ -183,7 +243,10 @@ describe('CommentComponent', () => {
         title: 'Delete Comment',
         message: 'Are you sure you want to delete comment?',
       });
-      expect(mockCommentsService.deleteComment).toHaveBeenCalledWith(mockTask.id, mockComment.id);
+      expect(mockCommentsService.deleteComment).toHaveBeenCalledWith(
+        mockTask.id,
+        mockComment.id,
+      );
     });
 
     it('should not delete the comment if confirm dialog is canceled', async () => {

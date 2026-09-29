@@ -11,6 +11,7 @@ describe('CommentsService', () => {
   let mockDataService: {
     getComments: ReturnType<typeof vi.fn>;
     createComment: ReturnType<typeof vi.fn>;
+    updateComment: ReturnType<typeof vi.fn>;
     deleteComment: ReturnType<typeof vi.fn>;
   };
 
@@ -21,6 +22,7 @@ describe('CommentsService', () => {
     userId: 10,
     content: 'First comment',
     createdAt: '2026-09-14T10:00:00Z',
+    updatedAt: null,
     user: { name: 'Alice' },
     replies: [],
   };
@@ -30,6 +32,7 @@ describe('CommentsService', () => {
     userId: 11,
     content: 'Second comment',
     createdAt: '2026-09-14T10:05:00Z',
+    updatedAt: null,
     user: { name: 'Mike' },
     replies: [],
   };
@@ -45,6 +48,7 @@ describe('CommentsService', () => {
     mockDataService = {
       getComments: vi.fn().mockReturnValue(of(mockPaginatedResponse)),
       createComment: vi.fn(),
+      updateComment: vi.fn(),
       deleteComment: vi.fn(),
     };
 
@@ -114,6 +118,7 @@ describe('CommentsService', () => {
         userId: 12,
         content: newCommentContent,
         createdAt: '2026-09-14T10:10:00Z',
+        updatedAt: null,
         user: { name: 'Charlie' },
       };
 
@@ -136,6 +141,7 @@ describe('CommentsService', () => {
         parentId: mockComment1.id,
         content: replyContent,
         createdAt: '2026-09-18T10:12:00Z',
+        updatedAt: null,
         user: { name: 'Dave' },
       };
 
@@ -150,6 +156,58 @@ describe('CommentsService', () => {
 
       expect(topComment.replies?.length).toBe(1);
       expect(topComment.replies?.[0].id).toBe(4);
+    });
+  });
+
+  describe('updateComment', () => {
+    it('should update a top-level comment in the store', () => {
+      const updatedComment: Comment = {
+        ...mockComment1,
+        content: 'Updated content',
+      };
+
+      mockDataService.updateComment.mockReturnValue(of(updatedComment));
+
+      service.loadComments(mockTaskId, 1);
+      service.updateComment(mockTaskId, mockComment1.id, 'Updated content').subscribe();
+
+      expect(mockDataService.updateComment).toHaveBeenCalledWith(mockTaskId, mockComment1.id, 'Updated content');
+      expect(service.comments()[0].content).toBe('Updated content');
+    });
+
+    it('should recursively update nested child comment while keeping replies intact', () => {
+      const childComment: Comment = {
+        id: 99,
+        taskId: mockTaskId,
+        userId: 15,
+        parentId: mockComment1.id,
+        content: 'Original child comment',
+        createdAt: '2026-09-14T10:15:00Z',
+        updatedAt: null,
+        user: { name: 'Eva' },
+        replies: [],
+      };
+      const commentWithReply: Comment = {
+        ...mockComment1,
+        replies: [childComment],
+      };
+
+      mockDataService.getComments.mockReturnValue(of({
+        ...mockPaginatedResponse,
+        data: [commentWithReply],
+      }));
+
+      const updatedChildComment: Comment = {
+        ...childComment,
+        content: 'Updated child comment',
+      };
+      mockDataService.updateComment.mockReturnValue(of(updatedChildComment));
+
+      service.loadComments(mockTaskId, 1);
+      service.updateComment(mockTaskId, 99, 'Updated child comment').subscribe();
+
+      expect(mockDataService.updateComment).toHaveBeenCalledWith(mockTaskId, 99, 'Updated child comment');
+      expect(service.comments()[0].replies?.[0].content).toBe('Updated child comment');
     });
   });
 
@@ -178,6 +236,7 @@ describe('CommentsService', () => {
             parentId: mockComment1.id,
             content: 'Nested child reply',
             createdAt: '2026-09-14T10:15:00Z',
+            updatedAt: null,
             user: { name: 'Eva' },
           },
         ],

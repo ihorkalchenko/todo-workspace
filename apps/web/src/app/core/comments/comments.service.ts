@@ -51,6 +51,14 @@ export const CommentsService = signalStore(
       );
     },
 
+    updateComment(taskId: number, commentId: number, content: string) {
+      return dataService.updateComment(taskId, commentId, content).pipe(
+        tap((updatedComment) => {
+          patchState(store, { comments: updateCommentInTree(store.comments(), updatedComment) });
+        }),
+      );
+    },
+
     deleteComment(taskId: number, commentId: number) {
       return dataService.deleteComment(taskId, commentId).pipe(
         tap(() => {
@@ -81,6 +89,27 @@ function insertReplyInTree(comments: Comment[], newComment: Comment, parentId?: 
 
     if (c.replies && c.replies.length > 0) {
       return { ...c, replies: insertReplyInTree(c.replies, newComment, parentId) };
+    }
+
+    return c;
+  });
+}
+
+/**
+ * Recursively updates a comment by its ID in a tree of nested comments.
+ *
+ * @param comments - Array of top-level or nested Comments
+ * @param updatedComment - The updated Comment returned from the server
+ * @returns A new array of comments with target comment updated while preserving child replies
+ * */
+function updateCommentInTree(comments: Comment[], updatedComment: Comment): Comment[] {
+  return comments.map((c) => {
+    if (c.id === updatedComment.id) {
+      return { ...c, ...updatedComment, replies: c.replies };
+    }
+
+    if (c.replies && c.replies.length > 0) {
+      return { ...c, replies: updateCommentInTree(c.replies, updatedComment) };
     }
 
     return c;
