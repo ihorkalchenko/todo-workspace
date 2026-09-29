@@ -7,13 +7,15 @@ import { Comment, Task } from '@todo-workspace/tasks';
 import { CommentsService } from '../../../../../core/comments/comments.service';
 import { ConfirmDialogService } from '../../../../../shared/confirm-dialog/confirm-dialog.service';
 
+export type CommentActionMode = 'none' | 'edit' | 'reply';
+
 @Component({
   selector: 'app-comment',
   imports: [DatePipe, FormsModule],
   templateUrl: './comment.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block bg-gray-50 mb-2 p-3 rounded-sm border border-gray-100',
+    class: 'block bg-gray-50 mb-2 p-3 rounded-sm border border-gray-100 group',
   },
 })
 export class CommentComponent {
@@ -24,26 +26,49 @@ export class CommentComponent {
   readonly comment = input.required<Comment>();
   readonly currentUser = input.required<User | null>();
 
-  readonly isReplying = signal(false);
-  readonly replyText = signal('');
+  readonly activeMode = signal<CommentActionMode>('none');
+  readonly inputText = signal('');
 
-  toggleReply() {
-    this.isReplying.update((state) => !state);
+  toggleEdit() {
+    if (this.activeMode() === 'edit') {
+      this.cancelAction();
+    } else {
+      this.activeMode.set('edit');
+      this.inputText.set(this.comment().content);
+    }
   }
 
-  postReply() {
-    const text = this.replyText().trim();
+  toggleReply() {
+    if (this.activeMode() === 'reply') {
+      this.cancelAction();
+    } else {
+      this.activeMode.set('reply');
+      this.inputText.set('');
+    }
+  }
+
+  cancelAction() {
+    this.activeMode.set('none');
+    this.inputText.set('');
+  }
+
+  submitAction() {
+    const text = this.inputText().trim();
     const task = this.task();
     const currComment = this.comment();
+    const mode = this.activeMode();
 
-    if (!text || !task) return;
+    if (!text || !task || mode === 'none') return;
 
-    this.commentsService
-      .addComment(task.id, text, currComment.id)
-      .subscribe(() => {
-        this.replyText.set('');
-        this.isReplying.set(false);
-      });
+    if (mode === 'edit') {
+      this.commentsService
+        .updateComment(task.id, currComment.id, text)
+        .subscribe(() => this.cancelAction());
+    } else if (mode === 'reply') {
+      this.commentsService
+        .addComment(task.id, text, currComment.id)
+        .subscribe(() => this.cancelAction());
+    }
   }
 
   async deleteComment(commentId: number) {
