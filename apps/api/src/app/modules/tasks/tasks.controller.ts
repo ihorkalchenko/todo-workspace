@@ -77,8 +77,8 @@ export class TasksController {
    *    "createdAt": "2026-09-14T16:00:00Z",
    *    "userId": 42,
    *    "tags": [
-   *      { "id": 1, "name": "Bug", "color": "#EF4444" },
-   *      { "id": 2, "name": "Auth", "color": "#3B82F6" }
+   *      { "id": 1, "name": "Bug", "color": "#EF4444", "userId": 42 },
+   *      { "id": 2, "name": "Auth", "color": "#3B82F6", "userId": 42 }
    *    ]
    *  }
    * */
@@ -113,8 +113,8 @@ export class TasksController {
    *   "createdAt": "2026-09-14T16:00:00Z",
    *   "userId": 42,
    *   "tags": [
-   *     { "id": 1, "name": "Bug", "color": "#EF4444" },
-   *     { "id": 3, "name": "Frontend", "color": "#108981" }
+   *     { "id": 1, "name": "Bug", "color": "#EF4444", "userId": 42 },
+   *     { "id": 3, "name": "Frontend", "color": "#108981", "userId": 42 }
    *   ]
    * }
    * */
