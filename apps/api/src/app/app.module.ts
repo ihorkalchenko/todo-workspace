@@ -8,6 +8,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ActivitiesModule } from './modules/activities/activities.module';
     AuthModule,
     CommentsModule,
     ActivitiesModule,
+    TagsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

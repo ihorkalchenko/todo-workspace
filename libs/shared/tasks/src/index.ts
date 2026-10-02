@@ -3,3 +3,4 @@ export * from './lib/task-status.type';
 export * from './lib/task-priority.type';
 export * from './lib/comment.interface';
 export * from './lib/activity.interface';
+export * from './lib/tag.interface';
