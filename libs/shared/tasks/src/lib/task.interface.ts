@@ -1,5 +1,6 @@
 import { TaskStatus } from './task-status.type';
 import { TaskPriority } from './task-priority.type';
+import { Tag } from './tag.interface';
 
 export interface Task {
   readonly id: number;
@@ -9,6 +10,7 @@ export interface Task {
   readonly status: TaskStatus;
   readonly priority: TaskPriority;
   readonly userId: number;
+  readonly tags?: Tag[];
   readonly user?: {
     readonly name: string;
   }

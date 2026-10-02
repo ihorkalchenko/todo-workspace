@@ -22,6 +22,7 @@ describe('TasksService', () => {
       createdAt: new Date().toISOString(),
       userId: 42,
       user: { name: 'Alice' },
+      tags: [{ id: 10, name: 'Bug', color: '#EF4444', userId: mockUserId }],
     },
     {
       id: 2,
@@ -33,6 +34,7 @@ describe('TasksService', () => {
       createdAt: new Date().toISOString(),
       userId: 42,
       user: { name: 'Alice' },
+      tags: [],
     },
   ];
 
@@ -81,16 +83,26 @@ describe('TasksService', () => {
 
   describe('getTasks', () => {
     it('should return a list of all tasks with user metadata', async () => {
-      mockDB.query.tasks.findMany.mockResolvedValue(mockTasks);
+      mockDB.query.tasks.findMany.mockResolvedValue([
+        {
+          ...mockTasks[0],
+          taskTags: [{ tag: { id: 10, name: 'Bug', color: '#EF4444', userId: mockUserId } }],
+        },
+      ]);
 
       const result = await service.getTasks();
 
-      expect(result).toEqual(mockTasks);
+      expect(result).toEqual([mockTasks[0]]);
       expect(mockDB.query.tasks.findMany).toHaveBeenCalledWith({
         orderBy: expect.any(Function),
         with: {
           user: {
             columns: { name: true },
+          },
+          taskTags: {
+            with: {
+              tag: true,
+            },
           },
         },
       });
@@ -100,7 +112,10 @@ describe('TasksService', () => {
   describe('getTask', () => {
     it('should return a single task by ID when it exists', async () => {
       const targetTask = mockTasks[0];
-      mockDB.query.tasks.findFirst.mockResolvedValue(targetTask);
+      mockDB.query.tasks.findFirst.mockResolvedValue({
+        ...targetTask,
+        taskTags: [{ tag: { id: 10, name: 'Bug', color: '#EF4444', userId: mockUserId } }],
+      });
 
       const result = await service.getTask(1);
 
@@ -110,6 +125,11 @@ describe('TasksService', () => {
         with: {
           user: {
             columns: { name: true },
+          },
+          taskTags: {
+            with: {
+              tag: true,
+            },
           },
         },
       });
@@ -131,26 +151,48 @@ describe('TasksService', () => {
         description: 'New Description',
         priority: 'Medium' as const,
         userId: mockUserId,
+        tagIds: [10, 20],
       };
 
-      const createdTask: Task = {
+      const insertedTask: Task = {
         id: 3,
+        title: createTaskData.title,
+        description: createTaskData.description,
+        priority: createTaskData.priority,
         status: 'To Do',
         order: 0,
+        userId: mockUserId,
         createdAt: new Date().toISOString(),
-        ...createTaskData,
+      };
+
+      const taskWithTags: Task = {
+        ...insertedTask,
+        tags: [
+          { id: 10, name: 'Bug', color: '#EF4444', userId: mockUserId },
+          { id: 20, name: 'Feature', color: '#3B82F6', userId: mockUserId },
+        ],
       };
 
       mockWhere.mockResolvedValue([{ maxOrder: -1 }]);
 
-      const mockReturningTask = vi.fn().mockResolvedValue([createdTask]);
+      const mockReturningTask = vi.fn().mockResolvedValue([insertedTask]);
       mockInsertValues.mockReturnValueOnce({  returning: mockReturningTask });
       mockInsertValues.mockReturnValueOnce(Promise.resolve());
+      mockInsertValues.mockReturnValueOnce(Promise.resolve());
+
+      mockDB.query.tasks.findFirst.mockResolvedValueOnce({
+        ...insertedTask,
+        taskTags: [
+          { tag: { id: 10, name: 'Bug', color: '#EF4444', userId: mockUserId } },
+          { tag: { id: 20, name: 'Feature', color: '#3B82F6', userId: mockUserId } },
+        ],
+      })
 
       const result = await service.createTask(mockUserId, createTaskData);
 
-      expect(result).toEqual(createdTask);
+      expect(result).toEqual(taskWithTags);
       expect(mockInsert).toHaveBeenCalledWith(schema.tasks);
+      expect(mockInsert).toHaveBeenCalledWith(schema.taskTags);
       expect(mockInsert).toHaveBeenCalledWith(schema.activities);
     });
   });
@@ -165,17 +207,25 @@ describe('TasksService', () => {
       };
 
       mockWhere.mockResolvedValueOnce([existingTask]);
+      mockWhere.mockResolvedValueOnce([{ tagId: 10 }]);
+      mockDeleteWhere.mockResolvedValueOnce(true);
 
       const mockReturningUpdated = vi.fn().mockReturnValue([updatedTask]);
-      mockUpdateSet.mockReturnValueOnce({ where: vi.fn().mockReturnValue({ returning: mockReturningUpdated }) });
+      mockUpdateSet.mockReturnValueOnce({
+        where: vi.fn().mockReturnValue({ returning: mockReturningUpdated }),
+      });
       mockInsertValues.mockReturnValueOnce(Promise.resolve());
 
       const result = await service.updateTask(mockUserId, 1, {
         title: 'Updated Title',
         priority: 'High',
+        tagIds: [10, 30],
       });
 
       expect(result).toEqual(updatedTask);
+      expect(mockDelete).toHaveBeenCalledWith(schema.taskTags);
+      expect(mockInsert).toHaveBeenCalledWith(schema.taskTags);
+      expect(mockInsert).toHaveBeenCalledWith(schema.activities);
     });
 
     it('should return undefined if task to update does not exist', async () => {

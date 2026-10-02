@@ -1,8 +1,10 @@
 import {integer, pgEnum, pgTable, serial, text, timestamp} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+
 import { users } from './users.schema';
 import { comments } from './comments.schema';
 import { activities } from './activities.schema';
+import { taskTags } from './task-tags.schema';
 
 export const statusEnum = pgEnum('status', ['To Do', 'Doing', 'Done', 'Archived']);
 export const priorityEnum = pgEnum('priority', ['Lowest', 'Low', 'Medium', 'High', 'Highest']);
@@ -26,4 +28,5 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
   }),
   comments: many(comments),
   activities: many(activities),
+  taskTags: many(taskTags),
 }));

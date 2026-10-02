@@ -1,42 +1,52 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Task, TaskStatus } from '@todo-workspace/tasks';
-import { DRIZZLE } from '../../db/db.module';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as schema from '../../db/schemas';
 import { and, eq, gt, gte, lt, lte, sql } from 'drizzle-orm';
+import { DRIZZLE } from '../../db/db.module';
+import * as schema from '../../db/schemas';
+
+import { Task, TaskStatus } from '@todo-workspace/tasks';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
   constructor(@Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof schema>) {}
 
   async getTasks(): Promise<Task[]> {
-    return this.db.query.tasks.findMany({
+    const result = await this.db.query.tasks.findMany({
       orderBy: (t, { asc }) => [asc(t.order), asc(t.id)],
       with: {
-        user: {
-          columns: { name: true },
-        },
+        user: { columns: { name: true } },
+        taskTags: { with: { tag: true } },
       },
-    }) as unknown as Promise<Task[]>;
+    });
+
+    return result.map(({ taskTags, ...task }) => ({
+      ...task,
+      tags: taskTags?.map((tt) => tt.tag) ?? [],
+    })) as unknown as Task[];
   }
 
   async getTask(id: number): Promise<Task | undefined> {
-    return this.db.query.tasks.findFirst({
+    const result = await this.db.query.tasks.findFirst({
       where: eq(schema.tasks.id, id),
       with: {
-        user: {
-          columns: {
-            name: true,
-          },
-        },
+        user: { columns: { name: true } },
+        taskTags: { with: { tag: true } },
       },
-    }) as unknown as Promise<Task | undefined>;
+    });
+
+    if (!result) return undefined;
+
+    const { taskTags, ...task } = result;
+
+    return {
+      ...task,
+      tags: taskTags?.map((tt) => tt.tag) ?? [],
+    } as unknown as Task;
   }
 
-  async createTask(
-    userId: number,
-    data: Pick<Task, 'title' | 'description' | 'priority' | 'userId'>
-  ): Promise<Task> {
+  async createTask(userId: number, dto: CreateTaskDto): Promise<Task> {
     return this.db.transaction(async (tx) => {
       const [result] = await tx
         .select({ maxOrder:  sql<number>`coalesce(max(${schema.tasks.order}), -1)` })
@@ -48,14 +58,25 @@ export class TasksService {
       const [task] = await tx
         .insert(schema.tasks)
         .values({
-          title: data.title,
-          description: data.description,
+          title: dto.title,
+          description: dto.description,
           status: 'To Do',
-          priority: data.priority ?? 'Medium',
+          priority: dto.priority ?? 'Medium',
           order: nextOrder,
-          userId: data.userId,
+          userId: dto.userId,
         })
         .returning();
+
+      if (dto.tagIds && dto.tagIds.length > 0) {
+        await tx
+          .insert(schema.taskTags)
+          .values(
+            dto.tagIds.map(tagId => ({
+              taskId: task.id,
+              tagId,
+            }))
+          );
+      }
 
       await tx
         .insert(schema.activities)
@@ -65,16 +86,15 @@ export class TasksService {
           action: 'created',
         });
 
-      return task as Task;
+      return this.getTask(task.id) as Promise<Task>;
     });
   }
 
-  async updateTask(
-    userId: number,
-    id: number,
-    data: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'userId'>>
-  ): Promise<Task | undefined> {
+  async updateTask(userId: number, id: number, dto: UpdateTaskDto): Promise<Task | undefined> {
     return this.db.transaction(async (tx) => {
+      const changes: string[] = [];
+      const { tagIds, ...updateData } = dto;
+
       const [existedTask] = await tx
         .select()
         .from(schema.tasks)
@@ -82,45 +102,79 @@ export class TasksService {
 
       if (!existedTask) return undefined;
 
-      const [updatedTask] = await tx
-        .update(schema.tasks)
-        .set(data)
-        .where(eq(schema.tasks.id, id))
-        .returning();
+      if (tagIds !== undefined) {
+        const oldTags = await tx
+          .select({ tagId: schema.taskTags.tagId })
+          .from(schema.taskTags)
+          .where(eq(schema.taskTags.taskId, id));
 
-      if (!updatedTask) return undefined;
+        const oldTagIds = oldTags.map(t => t.tagId).sort();
+        const newTagIds = [...tagIds].sort();
 
-      const changes: string[] = [];
+        const isTagChanged = oldTagIds.length !== newTagIds.length ||
+          oldTagIds.some((val, index) => val !== newTagIds[index]);
 
-      if (data.title && data.title !== existedTask.title) {
-        changes.push(`title to "${data.title}"`);
+        if (isTagChanged) {
+          await tx
+            .delete(schema.taskTags)
+            .where(eq(schema.taskTags.taskId, id));
+
+          if (tagIds.length > 0) {
+            await tx
+              .insert(schema.taskTags)
+              .values(
+                tagIds.map(tagId => ({
+                  taskId: id,
+                  tagId,
+                }))
+              );
+          }
+
+          changes.push('tags');
+        }
       }
 
-      if (data.description !== undefined && data.description !== existedTask.description) {
-        changes.push(`description to "${data.description}"`);
+      let updatedTask = existedTask;
+
+      if (Object.keys(updateData).length > 0) {
+        const [res] = await tx
+          .update(schema.tasks)
+          .set(updateData)
+          .where(eq(schema.tasks.id, id))
+          .returning();
+
+        if (!res) return undefined;
+        updatedTask = res;
       }
 
-      if (data.userId !== undefined && data.userId !== existedTask.userId) {
-        if (data.userId === null) {
+      if (dto.title && dto.title !== existedTask.title) {
+        changes.push(`title to "${dto.title}"`);
+      }
+
+      if (dto.description !== undefined && dto.description !== existedTask.description) {
+        changes.push(`description to "${dto.description}"`);
+      }
+
+      if (dto.userId !== undefined && dto.userId !== existedTask.userId) {
+        if (dto.userId === null) {
           changes.push('assignee to "Unassigned"');
         } else {
           const [assignedUser] = await tx
             .select({ name: schema.users.name })
             .from(schema.users)
-            .where(eq(schema.users.id, data.userId));
+            .where(eq(schema.users.id, dto.userId));
 
           const assigneeName = assignedUser?.name || "Unknown";
-
           changes.push(`assignee to "${assigneeName}"`);
         }
       }
 
-      if (data.status && data.status !== existedTask.status) {
-        changes.push(`status to "${data.status}"`);
+      if (dto.status && dto.status !== existedTask.status) {
+        changes.push(`status to "${dto.status}"`);
       }
 
-      if (data.priority && data.priority !== existedTask.priority) {
-        changes.push(`priority to "${data.priority}"`);
+      if (dto.priority && dto.priority !== existedTask.priority) {
+        changes.push(`priority to "${dto.priority}"`);
       }
 
       if (changes.length > 0) {
