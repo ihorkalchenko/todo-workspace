@@ -215,6 +215,12 @@ describe('TasksService', () => {
         where: vi.fn().mockReturnValue({ returning: mockReturningUpdated }),
       });
       mockInsertValues.mockReturnValueOnce(Promise.resolve());
+      mockInsertValues.mockReturnValueOnce(Promise.resolve());
+
+      mockDB.query.tasks.findFirst.mockResolvedValueOnce({
+        ...updatedTask,
+        taskTags: [{ tag: { id: 10, name: 'Bug', color: '#EF4444', userId: mockUserId } }],
+      });
 
       const result = await service.updateTask(mockUserId, 1, {
         title: 'Updated Title',

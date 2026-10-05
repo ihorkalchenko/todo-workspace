@@ -47,7 +47,7 @@ export class TasksService {
   }
 
   async createTask(userId: number, dto: CreateTaskDto): Promise<Task> {
-    return this.db.transaction(async (tx) => {
+    const taskId = await this.db.transaction(async (tx) => {
       const [result] = await tx
         .select({ maxOrder:  sql<number>`coalesce(max(${schema.tasks.order}), -1)` })
         .from(schema.tasks)
@@ -86,12 +86,14 @@ export class TasksService {
           action: 'created',
         });
 
-      return this.getTask(task.id) as Promise<Task>;
+      return task.id;
     });
+
+    return (await this.getTask(taskId)) as Task;
   }
 
   async updateTask(userId: number, id: number, dto: UpdateTaskDto): Promise<Task | undefined> {
-    return this.db.transaction(async (tx) => {
+    const updated = await this.db.transaction(async (tx) => {
       const changes: string[] = [];
       const { tagIds, ...updateData } = dto;
 
@@ -190,6 +192,10 @@ export class TasksService {
 
       return updatedTask as Task;
     });
+
+    if (!updated) return undefined;
+
+    return this.getTask(id);
   }
 
   async deleteTask(id: number): Promise<boolean> {
