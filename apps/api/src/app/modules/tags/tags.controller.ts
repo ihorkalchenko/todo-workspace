@@ -70,9 +70,17 @@ export class TagsController {
    * @param id - The ID of the tag to delete
    * @returns Object indicating success status
    * @throws NotFoundException if tag with the given ID does not exist
+   *
+   * @example
+   * DELETE /tags/3
+   * Response: {
+   *   "success": true
+   * }
    */
   @Delete(':id')
   async deleteTag(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
-    return this.tagsService.delete(req.user.id, id);
+    await this.tagsService.delete(req.user.id, id);
+
+    return{ success: true };
   }
 }
