@@ -4,14 +4,16 @@ import { Router } from '@angular/router';
 
 import { Task } from '@todo-workspace/tasks';
 import { PriorityBadgeComponent } from '../../../../shared/priority-badge/priority-badge';
+import { TagBadgeComponent } from '../../../../shared/tag-badge/tag-badge';
 
 @Component({
   selector: 'app-task-card',
-  imports: [DatePipe, PriorityBadgeComponent],
+  imports: [DatePipe, PriorityBadgeComponent, TagBadgeComponent],
   templateUrl: './task-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'group flex flex-col gap-2 p-4 bg-white rounded-md shadow-sm border border-gray-200 cursor-grab active:cursor-grabbing hover:border-blue-400 transition-colors'
+    class:
+      'group flex flex-col gap-2 p-4 bg-white rounded-md shadow-sm border border-gray-200 cursor-grab active:cursor-grabbing hover:border-blue-400 transition-colors',
   },
 })
 export class TaskCard {
