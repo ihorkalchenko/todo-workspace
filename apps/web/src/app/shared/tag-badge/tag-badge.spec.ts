@@ -66,4 +66,34 @@ describe('TagBadgeComponent', () => {
     expect(spanEl.textContent?.trim()).toBe('Bug');
     expect(spanEl.style.backgroundColor).toMatch(/(#ef4444|rgb\(239,\s*68,\s*68\))/i);
   });
+
+  it('should not render close button by default', () => {
+    fixture.componentRef.setInput('tag', mockTag);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+    expect(button).toBeNull();
+  });
+
+  it('should render close button when removable is true', () => {
+    fixture.componentRef.setInput('tag', mockTag);
+    fixture.componentRef.setInput('removable', true);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+    expect(button).toBeTruthy();
+  });
+
+  it('should emit close output when close button is clicked', () => {
+    fixture.componentRef.setInput('tag', mockTag);
+    fixture.componentRef.setInput('removable', true);
+    fixture.detectChanges();
+
+    let emitted: Tag | undefined;
+    component.close.subscribe(tag => (emitted = tag));
+
+    const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+    button.click();
+    expect(emitted).toEqual(mockTag);
+  });
 });
