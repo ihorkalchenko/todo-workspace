@@ -28,6 +28,10 @@ describe('TasksService', () => {
       createdAt: '2026-09-16T10:00:00Z',
       userId: 42,
       user: { name: 'Alice' },
+      tags: [
+        { id: 10, name: 'Bug', color: '#EF4444', userId: 42 },
+        { id: 20, name: 'Urgent', color: '#F59E0B', userId: 42 },
+      ],
     },
     {
       id: 2,
@@ -39,6 +43,7 @@ describe('TasksService', () => {
       createdAt: '2026-09-16T10:05:00Z',
       userId: 42,
       user: { name: 'Alice' },
+      tags: [{ id: 10, name: 'Bug', color: '#EF4444', userId: 42 }],
     },
   ];
 
@@ -78,6 +83,7 @@ describe('TasksService', () => {
           order: 0,
           createdAt: '2026-09-16T11:00:00Z',
           userId: 42,
+          tags: [],
         },
       ];
 
@@ -116,6 +122,7 @@ describe('TasksService', () => {
         description: 'Implement UI components',
         priority: 'Highest' as TaskPriority,
         userId: 42,
+        tagIds: [10],
       };
 
       const createdTask: Task = {
@@ -124,6 +131,7 @@ describe('TasksService', () => {
         status: 'To Do',
         order: 1,
         createdAt: '2026-09-16T10:00:00Z',
+        tags: [{ id: 10, name: 'Bug', color: '#EF4444', userId: 42 }],
       };
 
       mockDataService.createTask.mockReturnValueOnce(of(createdTask));
@@ -140,11 +148,13 @@ describe('TasksService', () => {
       const mockUpdatedTask = {
         title: 'Updated Title',
         priority: 'High' as const,
+        tagIds: [20],
       };
 
       const updatedTask: Task = {
         ...mockTasks[0],
         ...mockUpdatedTask,
+        tags: [{ id: 20, name: 'Urgent', color: '#F59E0B', userId: 42 }],
       };
 
       mockDataService.updateTask.mockReturnValueOnce(of(updatedTask));
@@ -154,6 +164,7 @@ describe('TasksService', () => {
       expect(mockDataService.updateTask).toHaveBeenCalledWith(1, mockUpdatedTask);
       expect(service.tasks().find(t => t.id === 1)?.title).toBe(mockUpdatedTask.title);
       expect(service.tasks().find(t => t.id === 1)?.priority).toBe(mockUpdatedTask.priority);
+      expect(service.tasks().find(t => t.id === 1)?.tags).toBe(updatedTask.tags);
     });
   });
 
@@ -188,6 +199,24 @@ describe('TasksService', () => {
       service.moveTask(1, 'Done' as TaskStatus, 0);
 
       expect(mockDataService.getTasks).toHaveBeenCalled();
+    });
+  });
+
+  describe('removeTagFromTasks', () => {
+    it('should strip deleted tag from tasks containing it while keeping other tags', () => {
+      service.removeTagFromTasks(10);
+
+      const task1 = service.tasks().find((t) => t.id === 1);
+      const task2 = service.tasks().find((t) => t.id === 2);
+
+      expect(task1?.tags).toEqual([{ id: 20, name: 'Urgent', color: '#F59E0B', userId: 42 }]);
+      expect(task2?.tags).toEqual([]);
+    });
+
+    it('should do nothing to tasks if tagId does not exist', () => {
+      service.removeTagFromTasks(999);
+
+      expect(service.tasks()).toEqual(mockTasks);
     });
   });
 });
