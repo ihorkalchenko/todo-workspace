@@ -1,6 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Task, TaskStatus, TaskPriority } from '@todo-workspace/tasks';
+
+import { Task, TaskStatus } from '@todo-workspace/tasks';
+import { CreateTaskDto } from './create-task.dto';
+import { UpdateTaskDto } from './update-task.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -17,11 +20,11 @@ export class TasksDataService {
     return this.http.get<Task>(`${this.apiUrl}/${id}`);
   }
 
-  createTask(data: Pick<Task, 'title' | 'description'> & { priority?: TaskPriority }) {
+  createTask(data: CreateTaskDto) {
     return this.http.post<Task>(this.apiUrl, data);
   }
 
-  updateTask(id: number, data: Partial<Task>) {
+  updateTask(id: number, data: UpdateTaskDto) {
     return this.http.patch<Task>(`${this.apiUrl}/${id}`, data);
   }
 

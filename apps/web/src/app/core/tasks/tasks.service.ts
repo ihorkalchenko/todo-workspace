@@ -2,7 +2,9 @@ import { inject } from '@angular/core';
 import { patchState, signalStore, withHooks, withMethods, withState } from '@ngrx/signals';
 
 import { TasksDataService } from './tasks-data.service';
-import { Task, TaskStatus, TaskPriority } from '@todo-workspace/tasks';
+import { Task, TaskStatus } from '@todo-workspace/tasks';
+import { CreateTaskDto } from './create-task.dto';
+import { UpdateTaskDto } from './update-task.dto';
 
 export interface TaskState {
   tasks: Task[];
@@ -34,7 +36,7 @@ export const TasksService = signalStore(
       return tasksDataService.getTask(id);
     },
 
-    createTask(data: Pick<Task, 'title' | 'description' | 'userId'> & { priority?: TaskPriority }) {
+    createTask(data: CreateTaskDto) {
       tasksDataService
         .createTask(data)
         .subscribe((newTask) => {
@@ -42,7 +44,7 @@ export const TasksService = signalStore(
         });
     },
 
-    updateTask(id: number, data: Partial<Task>) {
+    updateTask(id: number, data: UpdateTaskDto) {
       patchState(store, { isLoading: true });
 
       tasksDataService
@@ -82,6 +84,16 @@ export const TasksService = signalStore(
         .subscribe({
           error: () => tasksDataService.getTasks().subscribe(tasks => patchState(store, { tasks })),
         });
+    },
+
+    removeTagFromTasks(tagId: number) {
+      patchState(store, {
+        tasks: store.tasks().map((t) =>
+          t.tags?.some((tag) => tag.id === tagId)
+            ? { ...t, tags: t.tags.filter((tag) => tag.id !== tagId) }
+            : t,
+        ),
+      })
     },
 
   })),
