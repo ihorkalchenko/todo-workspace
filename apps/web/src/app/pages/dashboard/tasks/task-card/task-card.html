@@ -20,6 +20,12 @@
   <p class="text-xs text-gray-500 line-clamp-2">{{ task().description }}</p>
 }
 
+<div class="flex flex-wrap gap-1 mt-2">
+  @for (tag of task().tags; track tag.id) {
+    <app-tag-badge [tag]="tag" />
+  }
+</div>
+
 <div class="flex items-center justify-between mt-1 text-[11px] text-gray-400">
   <span>{{ task().createdAt | date: 'dd.MM.yyyy' }}</span>
 
