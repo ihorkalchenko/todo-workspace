@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import {TagBadgeComponent} from "./tag-badge";
@@ -90,7 +90,7 @@ describe('TagBadgeComponent', () => {
     fixture.detectChanges();
 
     let emitted: Tag | undefined;
-    component.close.subscribe(tag => (emitted = tag));
+    component.removed.subscribe(tag => (emitted = tag));
 
     const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
     button.click();

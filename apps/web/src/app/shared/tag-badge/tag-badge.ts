@@ -28,10 +28,10 @@ import { Tag } from '@todo-workspace/tasks';
 export class TagBadgeComponent {
   readonly tag = input.required<Tag>();
   readonly removable = input(false);
-  readonly close = output<Tag>();
+  readonly removed = output<Tag>();
 
   onClose(event: MouseEvent) {
     event.stopPropagation();
-    this.close.emit(this.tag());
+    this.removed.emit(this.tag());
   }
 }
