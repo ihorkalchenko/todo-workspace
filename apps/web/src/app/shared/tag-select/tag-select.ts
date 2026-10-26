@@ -7,6 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { noop } from 'rxjs';
+
 import { TagsService } from '../../core/tags/tags.service';
 import { TagManagerComponent } from '../tag-manager/tag-manager';
 import { TagBadgeComponent } from '../tag-badge/tag-badge';
@@ -17,11 +19,11 @@ import { TagBadgeComponent } from '../tag-badge/tag-badge';
   template: `
     <div>
       <div class="flex items-center justify-between mb-1">
-        <label
+        <span
           class="block text-sm font-semibold text-gray-700 italic uppercase tracking-wider"
         >
           Tags
-        </label>
+        </span>
         <button
           type="button"
           [disabled]="disabled()"
@@ -75,8 +77,8 @@ export class TagSelectComponent implements ControlValueAccessor {
   readonly selectedTagIds = signal<number[]>([]);
   readonly disabled = signal<boolean>(false);
 
-  private onChange: (value: number[]) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: number[]) => void = noop;
+  private onTouched: () => void = noop;
 
   constructor() {
     effect(() => {
