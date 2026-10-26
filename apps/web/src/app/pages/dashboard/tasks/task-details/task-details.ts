@@ -13,6 +13,7 @@ import { PriorityBadgeComponent } from '../../../../shared/priority-badge/priori
 import { UsersService } from '../../../../core/users/users.service';
 import { TasksService } from '../../../../core/tasks/tasks.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
+import { TagSelectComponent } from '../../../../shared/tag-select/tag-select';
 
 @Component({
   selector: 'app-tasks-details',
@@ -25,6 +26,7 @@ import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-
     NgClass,
     ActivitiesComponent,
     PriorityBadgeComponent,
+    TagSelectComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -78,6 +80,7 @@ export class TaskDetailsPage {
     status: ['To Do' as TaskStatus, Validators.required],
     priority: ['Medium' as TaskPriority, Validators.required],
     userId: [null as number | null, Validators.required],
+    tagIds: [[] as number[]],
   });
 
   readonly statuses: TaskStatus[] = ['To Do', 'Doing', 'Done', 'Archived'];
@@ -94,6 +97,7 @@ export class TaskDetailsPage {
           status: task.status,
           priority: task.priority ?? 'Medium',
           userId: task.userId,
+          tagIds: task.tags?.map((t) => t.id) ?? [],
         });
 
         if (task.user?.name) {
@@ -148,6 +152,7 @@ export class TaskDetailsPage {
       description: rawValue.description!,
       priority: rawValue.priority as TaskPriority,
       userId: rawValue.userId!,
+      tagIds: rawValue.tagIds || [],
     };
 
     if (isNew) {
