@@ -53,7 +53,7 @@ import { TagBadgeComponent } from '../tag-badge/tag-badge';
             <app-tag-badge [tag]="tag" />
           </button>
         } @empty {
-          <span class="text-xs text-gray-400 italic">
+          <span class="stub-text text-xs text-gray-400 italic">
             No tags available. Click "+ Add / Manage Tags" to create one.
           </span>
         }

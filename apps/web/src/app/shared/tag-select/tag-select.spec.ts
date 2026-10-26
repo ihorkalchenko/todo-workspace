@@ -46,7 +46,7 @@ describe('TagSelectComponent', () => {
     mockTags.set([]);
     fixture.detectChanges();
 
-    const emptyText = fixture.nativeElement.querySelector('span.italic');
+    const emptyText = fixture.nativeElement.querySelector('.stub-text');
     expect(emptyText?.textContent).toContain('No tags available');
   });
 
