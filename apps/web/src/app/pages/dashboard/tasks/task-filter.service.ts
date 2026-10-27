@@ -40,6 +40,7 @@ export const TaskFilterService = signalStore(
       return {
         allTasks,
         availableTags: tagsService.tags,
+        hasAnyTasks: computed(() => tasksService.tasks().length > 0),
         todoTasks: computed(() => allTasks().filter(({ status }) => status === 'To Do')),
         doingTasks: computed(() => allTasks().filter(({ status }) => status === 'Doing')),
         doneTasks: computed(() => allTasks().filter(({ status }) => status === 'Done')),
@@ -69,6 +70,10 @@ export const TaskFilterService = signalStore(
 
     toggleArchived() {
       patchState(store, { showArchived: !store.showArchived() });
+    },
+
+    clearFilters() {
+      patchState(store, { searchQuery: '', selectedTagIds: [] });
     },
   })),
   withHooks({

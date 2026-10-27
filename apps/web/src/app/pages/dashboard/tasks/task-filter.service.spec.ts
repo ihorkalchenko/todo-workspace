@@ -147,6 +147,19 @@ describe('TaskFilterService', () => {
     });
   });
 
+  describe('hasAnyTasks', () => {
+    it('should stay true when filters match nothing', () => {
+      service.setSearchQuery('pfff-no-match');
+      expect(service.allTasks().length).toBe(0);
+      expect(service.hasAnyTasks()).toBe(true);
+    });
+
+    it('should be false when there are no tasks at all', () => {
+      mockTasks.set([]);
+      expect(service.hasAnyTasks()).toBe(false);
+    });
+  });
+
   describe('showArchived toggle', () => {
     it('should toggle showArchived flag', () => {
       expect(service.showArchived()).toBe(false);
@@ -156,6 +169,20 @@ describe('TaskFilterService', () => {
 
       service.toggleArchived();
       expect(service.showArchived()).toBe(false);
+    });
+  });
+
+  describe('clearFilters', () => {
+    it('should reset search query and selected tags but keep showArchived', () => {
+      service.setSearchQuery('login');
+      service.toggleTag(1);
+      service.toggleArchived();
+
+      service.clearFilters();
+
+      expect(service.searchQuery()).toBe('');
+      expect(service.selectedTagIds()).toEqual([]);
+      expect(service.showArchived()).toBe(true);
     });
   });
 

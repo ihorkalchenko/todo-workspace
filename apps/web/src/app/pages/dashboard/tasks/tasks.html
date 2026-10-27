@@ -9,7 +9,22 @@
   </a>
 </div>
 
-@if (taskFilterService.allTasks().length > 0) {
+@if (!taskFilterService.hasAnyTasks()) {
+  <div class="rounded-sm border border-gray-200 bg-indigo-50 text-gray-700 px-6 py-4 text-center">
+    No tasks found. Create a new task to begin tracking your work.
+  </div>
+} @else if (taskFilterService.allTasks().length === 0) {
+  <div role="status" class="rounded-sm border border-gray-200 bg-gray-50 text-gray-700 px-6 py-4 text-center">
+    <p>No tasks match your filters.</p>
+    <button
+      type="button"
+      (click)="taskFilterService.clearFilters()"
+      class="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer"
+    >
+      Clear filters
+    </button>
+  </div>
+} @else {
   @if (taskFilterService.showArchived()) {
     <div class="max-w-md">
       <app-task-list
@@ -21,7 +36,7 @@
   } @else {
     <div
       cdkDropListGroup
-      class="grid grid-cols-1 md:grid-cols-3 gap-4 has-[calc(100vh-216px)] items-start md:items-stretch"
+      class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start md:items-stretch"
     >
       <app-task-list
         title="To Do"
@@ -42,8 +57,4 @@
       />
     </div>
   }
-} @else {
-  <div class="rounded-sm border border-gray-200 bg-indigo-50 text-gray-700 px-6 py-4 text-center">
-    No tasks found. Create a new task to begin tracking your work.
-  </div>
 }
