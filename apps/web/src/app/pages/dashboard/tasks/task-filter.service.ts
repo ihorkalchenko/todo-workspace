@@ -37,14 +37,31 @@ export const TaskFilterService = signalStore(
         });
       });
 
+      const archivedTasks = computed(() =>
+        allTasks().filter(({ status }) => status === 'Archived')
+      );
+
+      const visibleTasks = computed(() =>
+        store.showArchived()
+          ? archivedTasks()
+          : allTasks().filter(({ status }) => status !== 'Archived'),
+      );
+
+      const hasAnyTasks = computed(() =>
+        tasksService
+          .tasks()
+          .some(({ status }) => (store.showArchived() ? status === 'Archived' : status !== 'Archived')),
+      );
+
       return {
         allTasks,
+        visibleTasks,
+        hasAnyTasks,
         availableTags: tagsService.tags,
-        hasAnyTasks: computed(() => tasksService.tasks().length > 0),
         todoTasks: computed(() => allTasks().filter(({ status }) => status === 'To Do')),
         doingTasks: computed(() => allTasks().filter(({ status }) => status === 'Doing')),
         doneTasks: computed(() => allTasks().filter(({ status }) => status === 'Done')),
-        archivedTasks: computed(() => allTasks().filter(({ status }) => status === 'Archived')),
+        archivedTasks,
       };
     },
   ),

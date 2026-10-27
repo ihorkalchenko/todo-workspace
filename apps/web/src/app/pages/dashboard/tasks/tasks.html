@@ -11,9 +11,13 @@
 
 @if (!taskFilterService.hasAnyTasks()) {
   <div class="rounded-sm border border-gray-200 bg-indigo-50 text-gray-700 px-6 py-4 text-center">
-    No tasks found. Create a new task to begin tracking your work.
+    @if (taskFilterService.showArchived()) {
+      No archived tasks.
+    } @else {
+      No tasks found. Create a new task to begin tracking your work.
+    }
   </div>
-} @else if (taskFilterService.allTasks().length === 0) {
+} @else if (taskFilterService.visibleTasks().length === 0) {
   <div role="status" class="rounded-sm border border-gray-200 bg-gray-50 text-gray-700 px-6 py-4 text-center">
     <p>No tasks match your filters.</p>
     <button

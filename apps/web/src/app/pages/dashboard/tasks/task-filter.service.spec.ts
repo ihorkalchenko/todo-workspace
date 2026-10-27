@@ -147,15 +147,48 @@ describe('TaskFilterService', () => {
     });
   });
 
+  describe('visibleTasks', () => {
+    it('should exclude archived tasks on the board view', () => {
+      expect(service.visibleTasks().map(t => t.id)).toEqual([1,2,3]);
+    });
+
+    it('should return only archived tasks when showArchived is on', () => {
+      service.toggleArchived();
+      expect(service.visibleTasks().map(t => t.id)).toEqual([4]);
+    });
+
+    it('should be empty in archived view when the tag filter matches no archived task', () => {
+      service.toggleArchived();
+      service.toggleTag(1);
+
+      expect(service.visibleTasks()).toEqual([]);
+      expect(service.hasAnyTasks()).toBe(true);
+    });
+  });
+
   describe('hasAnyTasks', () => {
     it('should stay true when filters match nothing', () => {
       service.setSearchQuery('pfff-no-match');
-      expect(service.allTasks().length).toBe(0);
+
+      expect(service.visibleTasks().length).toBe(0);
       expect(service.hasAnyTasks()).toBe(true);
     });
 
     it('should be false when there are no tasks at all', () => {
       mockTasks.set([]);
+      expect(service.hasAnyTasks()).toBe(false);
+    });
+
+    it('should be false in archived view when no archived tasks exist', () => {
+      mockTasks.set(initialTasks.filter(t => t.status !== 'Archived'));
+      service.toggleArchived();
+
+      expect(service.hasAnyTasks()).toBe(false);
+    });
+
+    it('should be false on the board view when only archived tasks exist', () => {
+      mockTasks.set(initialTasks.filter(t => t.status === 'Archived'));
+
       expect(service.hasAnyTasks()).toBe(false);
     });
   });
