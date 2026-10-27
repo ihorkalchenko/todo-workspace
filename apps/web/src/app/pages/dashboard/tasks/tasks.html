@@ -1,18 +1,5 @@
 <div class="flex items-center justify-between mb-8 gap-4">
-  <div class="flex items-center gap-4 flex-1">
-    <app-task-search class="md:w-xs" [(query)]="searchQuery" />
-
-    <label for="archivedCtrl" class="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer select-none">
-      <input
-        id="archivedCtrl"
-        type="checkbox"
-        [checked]="showArchived()"
-        (change)="showArchived.set(!showArchived())"
-        class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-      />
-      Show Archived
-    </label>
-  </div>
+  <app-task-search class="flex-1" />
 
   <a
     [routerLink]="['/tasks', 'new']"
@@ -22,35 +9,35 @@
   </a>
 </div>
 
-@if (allTasks().length > 0) {
-  @if (showArchived()) {
+@if (taskFilterService.allTasks().length > 0) {
+  @if (taskFilterService.showArchived()) {
     <div class="max-w-md">
       <app-task-list
         title="Archived Tasks"
-        [tasks]="archivedTasks()"
+        [tasks]="taskFilterService.archivedTasks()"
         (dropped)="drop($event, 'Archived')"
       />
     </div>
   } @else {
     <div
       cdkDropListGroup
-      class="grid grid-cols-1 md:grid-cols-3 gap-4 has-[calc(100vh-216px)] items-start"
+      class="grid grid-cols-1 md:grid-cols-3 gap-4 has-[calc(100vh-216px)] items-start md:items-stretch"
     >
       <app-task-list
         title="To Do"
-        [tasks]="todoTasks()"
+        [tasks]="taskFilterService.todoTasks()"
         (dropped)="drop($event, 'To Do')"
       />
 
       <app-task-list
         title="Doing"
-        [tasks]="doingTasks()"
+        [tasks]="taskFilterService.doingTasks()"
         (dropped)="drop($event, 'Doing')"
       />
 
       <app-task-list
         title="Done"
-        [tasks]="doneTasks()"
+        [tasks]="taskFilterService.doneTasks()"
         (dropped)="drop($event, 'Done')"
       />
     </div>

@@ -1,44 +1,24 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
+
+import { TaskList } from './task-list/task-list';
 import { Task, TaskStatus } from '@todo-workspace/tasks';
 import { TasksService } from '../../../core/tasks/tasks.service';
 import { TaskSearchComponent } from './task-search/task-search';
 import { ConfirmDialogService } from '../../../shared/confirm-dialog/confirm-dialog.service';
-import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { TaskList } from './task-list/task-list';
+import { TaskFilterService } from './task-filter.service';
 
 @Component({
   selector: 'app-tasks',
   templateUrl: './tasks.html',
-  imports: [
-    RouterLink,
-    CdkDropListGroup,
-    TaskSearchComponent,
-    TaskList
-  ]
+  imports: [RouterLink, CdkDropListGroup, TaskSearchComponent, TaskList],
+  providers: [TaskFilterService]
 })
 export class TasksPage {
   private readonly tasksService = inject(TasksService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
-
-  readonly searchQuery = signal<string>('');
-  readonly showArchived = signal<boolean>(false);
-
-  readonly allTasks = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    const allTasks = this.tasksService.tasks();
-
-    if (!query) {
-      return allTasks;
-    }
-
-    return allTasks.filter(({ title }) => title.toLowerCase().includes(query));
-  });
-
-  readonly todoTasks = computed(() => this.allTasks().filter(({ status }) => status === 'To Do'));
-  readonly doingTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Doing'));
-  readonly doneTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Done'));
-  readonly archivedTasks = computed(() => this.allTasks().filter(({ status }) => status === 'Archived'));
+  readonly taskFilterService = inject(TaskFilterService);
 
   drop(event: CdkDragDrop<Task[]>, status: TaskStatus) {
     if (event.previousContainer === event.container && event.previousIndex === event.currentIndex) {

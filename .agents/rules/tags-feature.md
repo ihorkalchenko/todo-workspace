@@ -44,14 +44,17 @@ This rule provides context and architecture guidelines for AI agents working on 
 - **`TagsService`**: SignalStore (`tags`, `isLoading`) with `loadTags()`, `createTag()`, `deleteTag()`.
   - When `deleteTag(id)` succeeds, it immediately calls `TasksService.removeTagFromTasks(id)` to prevent stale tag badges on task cards.
 - **`TasksService`**: Contains `removeTagFromTasks(tagId: number)` to strip deleted tags from tasks in memory.
+- **`TaskFilterService`**: Scoped SignalStore (`providers: [TaskFilterService]` in `TasksPage`) managing `searchQuery`, `selectedTagIds`, and `showArchived`.
+  - Computes `allTasks` (filtered by text + tags), `availableTags`, and status buckets (`todoTasks`, `doingTasks`, `doneTasks`, `archivedTasks`).
+  - Implements `onInit` hook with `effect()` to automatically prune `selectedTagIds` when tags are deleted from `TagsService`.
 
 ### Components
 - **`TagBadgeComponent`**: Colored pill badge for rendering tag labels (supports optional removal output).
 - **`TagManagerComponent`**: Management UI with signal forms (`@angular/forms/signals`) for adding/deleting tags with color selection.
 - **`TagSelectComponent`**: Custom form control implementing `ControlValueAccessor` (`NG_VALUE_ACCESSOR`). Used as `<app-tag-select formControlName="tagIds" />` in `TaskDetailsPage`. Includes automatic reactive pruning if a selected tag is deleted from the store.
 - **`TaskCard`**: Renders attached tags as badges.
-- **`TaskSearchComponent`**: Multi-select tag filter with automatic pruning of deleted tags.
-- **`TasksPage`**: Computed signal `allTasks` filters board tasks based on `selectedTagIds`.
+- **`TaskSearchComponent`**: Slim search input, "Show Archived" checkbox, and multi-select tag filter row, interacting directly with `TaskFilterService`.
+- **`TasksPage`**: Host board component providing `TaskFilterService` and binding column drop lists directly to `taskFilterService.todoTasks()`, etc.
 
 ---
 
@@ -65,6 +68,7 @@ This rule provides context and architecture guidelines for AI agents working on 
   - `tasks.service.spec.ts`: Test `removeTagFromTasks` tag pruning from tasks.
   - `tag-select.spec.ts`: Test `ControlValueAccessor` (`writeValue`, `registerOnChange`, `setDisabledState`), tag toggle, and pruning effect.
   - `tag-manager.spec.ts`: Test signal form validation, DOM submission, and tag deletion.
+  - `task-filter.service.spec.ts`: Test keyword search, tag toggle/clear, combined filtering, status categorization, and reactive tag pruning with `TestBed.tick()`.
 - **Verification Commands**:
   - `npx nx test api`
   - `npx nx test web --watch=false`
