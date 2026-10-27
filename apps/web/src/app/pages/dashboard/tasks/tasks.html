@@ -1,18 +1,5 @@
 <div class="flex items-center justify-between mb-8 gap-4">
-  <div class="flex items-center gap-4 flex-1">
-    <app-task-search class="md:w-xs" [(query)]="searchQuery" />
-
-    <label for="archivedCtrl" class="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer select-none">
-      <input
-        id="archivedCtrl"
-        type="checkbox"
-        [checked]="showArchived()"
-        (change)="showArchived.set(!showArchived())"
-        class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-      />
-      Show Archived
-    </label>
-  </div>
+  <app-task-search class="flex-1" />
 
   <a
     [routerLink]="['/tasks', 'new']"
@@ -22,41 +9,56 @@
   </a>
 </div>
 
-@if (allTasks().length > 0) {
-  @if (showArchived()) {
+@if (!taskFilterService.hasAnyTasks()) {
+  <div class="rounded-sm border border-gray-200 bg-indigo-50 text-gray-700 px-6 py-4 text-center">
+    @if (taskFilterService.showArchived()) {
+      No archived tasks.
+    } @else {
+      No tasks found. Create a new task to begin tracking your work.
+    }
+  </div>
+} @else if (taskFilterService.visibleTasks().length === 0) {
+  <div role="status" class="rounded-sm border border-gray-200 bg-gray-50 text-gray-700 px-6 py-4 text-center">
+    <p>No tasks match your filters.</p>
+    <button
+      type="button"
+      (click)="taskFilterService.clearFilters()"
+      class="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer"
+    >
+      Clear filters
+    </button>
+  </div>
+} @else {
+  @if (taskFilterService.showArchived()) {
     <div class="max-w-md">
       <app-task-list
         title="Archived Tasks"
-        [tasks]="archivedTasks()"
+        [tasks]="taskFilterService.archivedTasks()"
         (dropped)="drop($event, 'Archived')"
       />
     </div>
   } @else {
     <div
       cdkDropListGroup
-      class="grid grid-cols-1 md:grid-cols-3 gap-4 has-[calc(100vh-216px)] items-start"
+      class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start md:items-stretch"
     >
       <app-task-list
         title="To Do"
-        [tasks]="todoTasks()"
+        [tasks]="taskFilterService.todoTasks()"
         (dropped)="drop($event, 'To Do')"
       />
 
       <app-task-list
         title="Doing"
-        [tasks]="doingTasks()"
+        [tasks]="taskFilterService.doingTasks()"
         (dropped)="drop($event, 'Doing')"
       />
 
       <app-task-list
         title="Done"
-        [tasks]="doneTasks()"
+        [tasks]="taskFilterService.doneTasks()"
         (dropped)="drop($event, 'Done')"
       />
     </div>
   }
-} @else {
-  <div class="rounded-sm border border-gray-200 bg-indigo-50 text-gray-700 px-6 py-4 text-center">
-    No tasks found. Create a new task to begin tracking your work.
-  </div>
 }
